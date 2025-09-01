@@ -12,7 +12,7 @@
 
   // Data sources
   const DEFAULT_LOI_URL = '/public/data/gps-traces-bh.json';
-  const SCENARIOS_URL   = '/public/data/gps-traces-bh-demo.json'; // ← scenarios file in use
+  const SCENARIOS_URL   = '/public/data/gps-traces-bh-demo.json'; // scenarios file in use
 
   // cache per-URL
   const dataCache = new Map();
@@ -83,15 +83,17 @@
     return line;
   }
 
-  function areaPopupHTML(area) {
+  // Popup HTML; "whenText" overrides JSON timeanddate (used only for LOI table clicks)
+  function areaPopupHTML(area, whenText /* may be null */) {
     const label = area.label || 'Area';
     const type = area.type ? `<span class="app-area-chip">${area.type}</span>` : '';
-    const when = area.timeanddate ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${area.timeanddate}</p>` : '';
+    const when = whenText || area.timeanddate || '';
+    const whenHTML = when ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${when}</p>` : '';
     return `
       <div class="app-area-card">
         <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${label}</h4>
         ${type}
-        ${when}
+        ${whenHTML}
       </div>
     `;
   }
@@ -100,12 +102,13 @@
     latlngs.forEach(ll => bounds.extend(ll));
   }
 
-  // ---------- plot by key (existing behaviour) ----------
+  // ---------- plot by key (used by LOI rows and scenarios helper) ----------
   async function plotTrace(traceKey, opts = {}) {
     const {
       scrollToMap = true,
       highlightRowEl = null,
-      dataUrl = DEFAULT_LOI_URL   // <<< default = original LOI file
+      dataUrl = DEFAULT_LOI_URL,
+      whenTextOverride = null   // ← only passed by LOI table “View” links
     } = opts;
 
     const map = window.map;
@@ -123,14 +126,15 @@
     }
 
     // Delegate to object plotter
-    return window.plotTraceObject(trace, { scrollToMap, highlightRowEl });
+    return window.plotTraceObject(trace, { scrollToMap, highlightRowEl, whenTextOverride });
   }
 
-  // ---------- plot a provided trace object (for filtered scenarios) ----------
+  // ---------- plot a provided trace object ----------
   window.plotTraceObject = async function (traceObj, opts = {}) {
     const {
       scrollToMap = true,
-      highlightRowEl = null
+      highlightRowEl = null,
+      whenTextOverride = null   // used ONLY when called from LOI links
     } = opts;
 
     const map = window.map;
@@ -151,7 +155,7 @@
       latlngs.push(ll);
 
       if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
-        // keep accuracy circles BLUE (subtle)
+        // subtle BLUE confidence
         L.circle(ll, { radius: pt.accuracy, color: '#1d70b8', weight: 1, fillOpacity: 0.1 })
           .addTo(groups.accuracy);
       }
@@ -172,6 +176,7 @@
     }
 
     // ---- polygons / areas (LOIs) - PINK ----
+    const whenText = whenTextOverride || null; // ← only LOI clicks set this
     (traceObj.areas || []).forEach(area => {
       const pts = (area.coordinates || []).map(c => [c.lat, c.lng]);
       if (pts.length >= 3) {
@@ -184,7 +189,7 @@
 
         accumulateBounds(allBounds, pts);
 
-        poly.bindPopup(areaPopupHTML(area), {
+        poly.bindPopup(areaPopupHTML(area, whenText), {
           closeButton: true,
           autoClose: false,
           closeOnClick: false,
@@ -215,12 +220,12 @@
 
     // status live region
     const status = document.getElementById('map-status');
-    if (status) status.textContent = 'Map updated with filtered GPS trace.';
+    if (status) status.textContent = 'Map updated with GPS trace.';
   };
 
   // ---------- wire up clicks & initial plot ----------
   onReady(function () {
-    // 1) LOI table “View” links: ALWAYS use the original LOI JSON
+    // 1) LOI table “View” links: ALWAYS use the original LOI JSON + override popup date from row
     document.addEventListener('click', function (e) {
       const a = e.target.closest && e.target.closest('.plot-link');
       if (!a) return;
@@ -230,26 +235,44 @@
       if (!key) return;
 
       const row = a.closest('tr');
+      // Extract date from first cell (renders with <br/>)
+      let whenTextOverride = null;
+      if (row) {
+        const firstCell = row.querySelector('td');
+        if (firstCell) {
+          whenTextOverride = firstCell.innerText.replace(/\s+/g, ' ').trim(); // "Monday 1 September 2025"
+        }
+      }
+
       plotTrace(key, {
         scrollToMap: true,
         highlightRowEl: row,
-        dataUrl: DEFAULT_LOI_URL   // <<< lock to LOI dataset here
+        dataUrl: DEFAULT_LOI_URL,
+        whenTextOverride // ← only set for LOI flow
       });
     });
 
-    // 2) Auto-load first row on page load (NO SCROLL), also from LOI dataset
+    // 2) Auto-load first row on page load (NO SCROLL), also from LOI dataset with override
     const firstLink = document.querySelector('.plot-link');
     if (firstLink) {
       const firstTrace = firstLink.dataset.trace;
       const firstRow = firstLink.closest('tr');
+
+      let whenTextOverride = null;
+      if (firstRow) {
+        const firstCell = firstRow.querySelector('td');
+        if (firstCell) whenTextOverride = firstCell.innerText.replace(/\s+/g, ' ').trim();
+      }
+
       plotTrace(firstTrace, {
         scrollToMap: false,
         highlightRowEl: firstRow,
-        dataUrl: DEFAULT_LOI_URL    // <<< lock to LOI dataset here
+        dataUrl: DEFAULT_LOI_URL,
+        whenTextOverride
       });
     }
 
-    // 3) Expose helpers for scenarios usage
+    // 3) Expose helper for scenarios usage (NO override passed here)
     window.__BH_SCENARIOS_URL = SCENARIOS_URL;
     window.plotTraceFromScenarios = function (key, opts = {}) {
       return plotTrace(key, { ...opts, dataUrl: SCENARIOS_URL });

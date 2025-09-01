@@ -25,7 +25,7 @@
     });
 
     var b = layerGroup.getBounds();
-    if (b.isValid()) window.map.fitBounds(b, { padding: [20, 20] });
+    if (b && b.isValid && b.isValid()) window.map.fitBounds(b, { padding: [20, 20] });
 
     var status = $('#bh-map-status');
     if (status) {
@@ -67,9 +67,25 @@
       // Start from a random trace each load (original LOI table behaviour)
       showRandomFirst();
 
-      if (form) form.addEventListener('submit', function (ev) {
-        ev.preventDefault();
-        showNext();
-      });
+      if (form) {
+        form.addEventListener('submit', function (ev) {
+          ev.preventDefault();
+          showNext();
+        });
+      }
 
       var clear = $('#bh-clear-filters');
+      if (clear) {
+        clear.addEventListener('click', function (ev) {
+          ev.preventDefault();
+          if (form && typeof form.reset === 'function') form.reset();
+          showRandomFirst();
+        });
+      }
+    }
+    // If hasDatePickers === true, do nothing here;
+    // bh-update-map.js handles the date/time filtering & plotting.
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();

@@ -11,6 +11,7 @@
 
   onReady(function () {
     // 1) Create the map (same as before)
+    //    IMPORTANT: do not pass { layers: [streetLayer] } here.
     window.map = L.map('map').setView([51.889, 0.903], 13);
 
     // 2) Define base layers
@@ -32,6 +33,22 @@
 
     // 3) Make STREET the default
     streetLayer.addTo(window.map);
+
+    // 3a) Expose layers globally so any later code can reference them safely
+    //     (prevents "streetLayer is not defined" if someone reads window.streetLayer)
+    window.streetLayer = streetLayer;
+    window.satelliteLayer = satelliteLayer;
+
+    // 3b) Helpful guard: if map was accidentally created with { layers:[streetLayer] }
+    //     before this file ran, there would have been a ReferenceError already.
+    //     We log a hint once here to help future debugging.
+    if (!window.map.hasLayer(streetLayer) && !window.map.hasLayer(satelliteLayer)) {
+      // No base layer found — this means another script removed it or an earlier error occurred.
+      // Add street again just in case.
+      try { streetLayer.addTo(window.map); } catch (e) {
+        console.warn('[init] Re-adding street layer after earlier error:', e);
+      }
+    }
 
     // 4) Register base layers with your overlay control
     if (typeof window.setupMapOverlays === 'function') {

@@ -45,7 +45,7 @@
     active: true
   }, {
     text: "Case notes",
-    href: "rm-case-notes-ems"
+    href: ""
   }]
 }) }}
 
@@ -53,7 +53,7 @@
 
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
-<h3 class="govuk-heading-s">Filter map by date and time</h3>
+<h3 class="govuk-heading-s">1. Filter map by date and time</h3>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="bh-map-filters" class="loi-filters__form" novalidate>
@@ -66,8 +66,8 @@
           name: "dateFrom",
           label: { text: "Date from" },
           classes: "govuk-input--width-10",
-          value: "2/09/2025",
-          maxDate: "2/09/2025"
+          value: "02/09/2025",
+          maxDate: "02/09/2025"
         }) }}
       </div>
 
@@ -77,8 +77,8 @@
           name: "dateTo",
           label: { text: "Date to" },
           classes: "govuk-input--width-10",
-          value: "2/09/2025",
-          maxDate: "2/09/2025"
+          value: "02/09/2025",
+          maxDate: "02/09/2025"
         }) }}
       </div>
 
@@ -151,7 +151,8 @@
   <p class="govuk-body-s"><a href="map-help">Help with the map</a></p>
 </div>
 
-<h3 class="govuk-heading-s">Filter map by locations of interest</h3>
+<h3 class="govuk-heading-s">2. Or filter map by locations of interest</h3>
+<p class="govuk-body">Locations of interests are connected to a person on probation’s licence conditions.</p>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="loi-filters" class="loi-filters__form" novalidate data-tag-fitted="2025-06-08">
@@ -344,7 +345,7 @@
     <dl class="govuk-summary-list">
       <div class="govuk-summary-list__row">
         <dt class="govuk-summary-list__key">
-          <span class="govuk-!-font-weight-regular">EMS were unable to fit Penny's GPS tag on Wednesday 5 and Friday 7 March 2025 as Penny was not available at their approved address. Their tag was fitted on Wednesday 12 March 2025.</span>
+          <span class="govuk-!-font-weight-regular">EMS were unable to fit Billy's GPS tag on Wednesday 5 and Friday 7 March 2025 as Billy was not available at their approved address. Their tag was fitted on Wednesday 12 March 2025.</span>
         </dt>
       </div>
       <div class="govuk-summary-list__row">

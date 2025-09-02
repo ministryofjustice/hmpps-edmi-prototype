@@ -88,14 +88,49 @@
   function fmtCoord(n) {
     return (typeof n === 'number') ? n.toFixed(6) : '—';
   }
-  function fmtTimeHHMM(isoStr) {
-    if (!isoStr) return '—';
-    const d = new Date(isoStr);
-    if (isNaN(d.getTime())) return '—';
-    const h = String(d.getHours()).padStart(2,'0');
-    const m = String(d.getMinutes()).padStart(2,'0');
-    return `${h}:${m}`;
+// Replace your existing fmtTimeHHMM with this:
+function fmtTimeHHMM(val) {
+  if (!val) return '—';
+
+  // If already "HH:MM" or "H:MM"
+  if (typeof val === 'string') {
+    // 1) Plain clock strings like "21:33" or "9:05" (optionally with seconds)
+    const m = val.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (m) {
+      const hh = m[1].padStart(2, '0');
+      const mm = m[2];
+      return `${hh}:${mm}`;
+    }
+    // 2) Try ISO or any Date-parsable string
+    const d = new Date(val);
+    if (!isNaN(d)) {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+    return '—';
   }
+
+  // Date instance
+  if (val instanceof Date && !isNaN(val)) {
+    const hh = String(val.getHours()).padStart(2, '0');
+    const mm = String(val.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  // Epoch milliseconds (number)
+  if (typeof val === 'number') {
+    const d = new Date(val);
+    if (!isNaN(d)) {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  }
+
+  return '—';
+}
+
   function pointPopupHTML(pt, idx) {
     const label = (pt.label != null) ? String(pt.label) : String(idx + 1);
     const acc   = (typeof pt.accuracy === 'number') ? `${fmtNum(pt.accuracy, 0)}m` : '—';

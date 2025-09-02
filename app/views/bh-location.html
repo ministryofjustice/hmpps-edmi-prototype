@@ -66,8 +66,8 @@
           name: "dateFrom",
           label: { text: "Date from" },
           classes: "govuk-input--width-10",
-          value: "02/09/2025",
-          maxDate: "02/09/2025"
+          value: "03/09/2025",
+          maxDate: "03/09/2025"
         }) }}
       </div>
 
@@ -77,8 +77,8 @@
           name: "dateTo",
           label: { text: "Date to" },
           classes: "govuk-input--width-10",
-          value: "02/09/2025",
-          maxDate: "02/09/2025"
+          value: "03/09/2025",
+          maxDate: "03/09/2025"
         }) }}
       </div>
 
@@ -151,7 +151,7 @@
   <p class="govuk-body-s"><a href="map-help">Help with the map</a></p>
 </div>
 
-<h3 class="govuk-heading-s">2. Or filter map by locations of interest</h3>
+<h3 class="govuk-heading-s" id="filter-by-loi">2. Or filter map by locations of interest</h3>
 <p class="govuk-body">Locations of interests are connected to a person on probation’s licence conditions.</p>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
@@ -235,14 +235,14 @@
       { html: loiDates[4].html | safe, attributes: { "data-sort-value": loiDates[4].iso } },
       { text: "Home", attributes: { "data-sort-value": "home" } },
       { html: "46-6 Rainsborowe Rd<br/>Colchester" },
-      { html: "00:00am to 11:59pm<br/>(11 hours 59 mins)", attributes: { "data-sort-value": "719" }, classes: "no-wrap" },
+      { html: "00:00am to 11:59pm<br/>(23 hours 59 mins)", attributes: { "data-sort-value": "719" }, classes: "no-wrap" },
       { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h3">View</a>' }
     ],
     [
       { html: loiDates[5].html | safe, attributes: { "data-sort-value": loiDates[5].iso } },
       { text: "Home", attributes: { "data-sort-value": "home" } },
       { html: "46-6 Rainsborowe Rd<br/>Colchester" },
-      { html: "00:00am to 11:59pm<br/>(11 hours 59 mins)", attributes: { "data-sort-value": "719" } },
+      { html: "00:00am to 11:59pm<br/>(23 hours 59 mins)", attributes: { "data-sort-value": "719" } },
       { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h4">View</a>' }
     ],
     [
@@ -291,7 +291,7 @@
       { html: loiDates[12].html, attributes: { "data-sort-value": loiDates[12].iso } },
       { text: "Home", attributes: { "data-sort-value": "home" } },
       { html: "46-6 Rainsborowe Rd<br/>Colchester" },
-      { html: "00:00am to 11:59pm<br/>(11 hours 59 mins)", attributes: { "data-sort-value": "719" } },
+      { html: "00:00am to 11:59pm<br/>(23 hours 59 mins)", attributes: { "data-sort-value": "719" } },
       { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h9">View</a>' }
     ],
     [

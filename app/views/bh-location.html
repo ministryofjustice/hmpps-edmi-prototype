@@ -53,7 +53,7 @@
 
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
-<h3 class="govuk-heading-s">1. Filter map by date and time</h3>
+<h3 class="govuk-heading-s">1. Search map by date and time</h3>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="bh-map-filters" class="loi-filters__form" novalidate>
@@ -92,7 +92,7 @@
                 <label class="govuk-label govuk-date-input__label" for="bh-time-from-hour">Hour</label>
                 <input class="govuk-input govuk-date-input__input govuk-input--width-2"
                        id="bh-time-from-hour" name="timeFromHour" type="number"
-                       inputmode="numeric" min="0" max="23" value="10">
+                       inputmode="numeric" min="0" max="23" value="09">
               </div>
             </div>
             <div class="govuk-date-input__item">
@@ -116,7 +116,7 @@
                 <label class="govuk-label govuk-date-input__label" for="bh-time-to-hour">Hour</label>
                 <input class="govuk-input govuk-date-input__input govuk-input--width-2"
                        id="bh-time-to-hour" name="timeToHour" type="number"
-                       inputmode="numeric" min="0" max="23" value="11">
+                       inputmode="numeric" min="0" max="23" value="09">
               </div>
             </div>
             <div class="govuk-date-input__item">
@@ -124,7 +124,7 @@
                 <label class="govuk-label govuk-date-input__label" for="bh-time-to-min">Minute</label>
                 <input class="govuk-input govuk-date-input__input govuk-input--width-2"
                        id="bh-time-to-min" name="timeToMin" type="number"
-                       inputmode="numeric" min="0" max="59" value="30">
+                       inputmode="numeric" min="0" max="59" value="05">
               </div>
             </div>
           </div>
@@ -136,7 +136,7 @@
         <button class="govuk-button" data-module="govuk-button" id="bh-apply-filters" type="submit">
           Update map
         </button>
-        <a href="bh-location" id="bh-clear-filters" class="govuk-link">Clear filters</a>
+        <a href="bh-location#" id="bh-clear-filters" class="govuk-link">Clear filters</a>
       </div>
 
     </div>

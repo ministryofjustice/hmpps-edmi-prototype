@@ -17,6 +17,13 @@
     setTimeout(() => whenMapReady(cb, tries - 1), 50);
   }
 
+  // ---------- per-page config with sensible defaults ----------
+  const CFG = Object.assign({
+    DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
+    SCENARIOS_URL:   '/public/data/gps-traces-bh-demo.json',
+    DEFAULT_SCENARIO_KEY: 'bh_20250903'
+  }, (window.GPS_CONFIG || {}));
+
   // Convert HTML like "Wednesday 3 September<br/>2025" to "Wednesday 3 September 2025"
   function htmlToPlain(html) {
     if (typeof html !== 'string') return '';
@@ -35,10 +42,6 @@
     if (idx === -1) return '';
     return timeanddate.slice(idx + 1).trim();
   }
-
-  // Data sources
-  const DEFAULT_LOI_URL = '/public/data/gps-traces-bh.json';
-  const SCENARIOS_URL   = '/public/data/gps-traces-bh-demo.json'; // scenarios (includes bh_20250903)
 
   // cache per-URL
   const dataCache = new Map();
@@ -76,7 +79,7 @@
   }
 
   async function loadGpsData(url) {
-    const key = url || DEFAULT_LOI_URL;
+    const key = url;
     if (dataCache.has(key)) return dataCache.get(key);
     const res = await fetch(key, { cache: 'no-store' });
     const json = await res.json();
@@ -210,7 +213,7 @@
     const {
       scrollToMap = true,
       highlightRowEl = null,
-      dataUrl = DEFAULT_LOI_URL
+      dataUrl = CFG.DEFAULT_LOI_URL
     } = opts;
 
     const map = window.map;
@@ -343,7 +346,7 @@
     document.querySelectorAll('tr.highlighted-row').forEach(tr => tr.classList.remove('highlighted-row'));
     highlightedRow = null;
 
-    // 1) LOI table “View” links: ALWAYS use the original LOI JSON (and highlight that row)
+    // 1) LOI table “View” links
     document.addEventListener('click', function (e) {
       const a = e.target.closest && e.target.closest('.plot-link');
       if (!a) return;
@@ -356,16 +359,16 @@
       plotTrace(key, {
         scrollToMap: true,
         highlightRowEl: row,
-        dataUrl: DEFAULT_LOI_URL
+        dataUrl: CFG.DEFAULT_LOI_URL
       });
     });
 
-    // 2) On first page load: load the scenarios “latest 5 mins” trace (no highlight, no scroll).
+    // 2) Default scenario trace (no highlight, no scroll).
     whenMapReady(() => {
-      plotTrace('bh_20250903', {
+      plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
         scrollToMap: false,
         highlightRowEl: null,
-        dataUrl: SCENARIOS_URL
+        dataUrl: CFG.SCENARIOS_URL
       });
     });
   });

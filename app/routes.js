@@ -8,6 +8,20 @@ const router = govukPrototypeKit.requests.setupRouter()
 
 // Add your routes here
 
+// Routes for Penny Location page
+router.get('/penny-location', (req, res) => {
+  const d = new Date();
+  const dd   = String(d.getDate()).padStart(2, '0');
+  const mm   = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+
+  const todayMax = `${dd}/${mm}/${yyyy}`;
+  const todayDisplay = `${d.getDate()}/${d.getMonth()+1}/${String(yyyy).slice(-2)}`;
+
+  // loiDates and startIndex are already populated by your middleware
+  res.render('penny-location', { todayMax, todayDisplay, startIndex: res.locals.startIndex });
+});
+
 
 
 // ---- Dynamic dates for LOI table (available to all views) ----

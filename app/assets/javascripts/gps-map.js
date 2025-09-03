@@ -10,6 +10,32 @@
   }
   function $(sel, root = document) { return root.querySelector(sel); }
 
+  // Wait until Leaflet map is attached to window.map (handles soft reloads)
+  function whenMapReady(cb, tries = 40) {
+    if (window.map && typeof window.map.addLayer === 'function') return cb();
+    if (tries <= 0) return console.warn('[gps-map] Map not ready after waiting.');
+    setTimeout(() => whenMapReady(cb, tries - 1), 50);
+  }
+
+  // Convert HTML like "Wednesday 3 September<br/>2025" to "Wednesday 3 September 2025"
+  function htmlToPlain(html) {
+    if (typeof html !== 'string') return '';
+    return html
+      .replace(/<br\s*\/?>/gi, ' ')
+      .replace(/<\/?[^>]+>/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Extract the time range (text after the first comma) from
+  // "Thursday 24 July 2025, 9:33pm to 10:42pm"
+  function extractTimeRange(timeanddate) {
+    if (!timeanddate || typeof timeanddate !== 'string') return '';
+    const idx = timeanddate.indexOf(',');
+    if (idx === -1) return '';
+    return timeanddate.slice(idx + 1).trim();
+  }
+
   // Data sources
   const DEFAULT_LOI_URL = '/public/data/gps-traces-bh.json';
   const SCENARIOS_URL   = '/public/data/gps-traces-bh-demo.json'; // scenarios (includes bh_20250903)
@@ -88,48 +114,42 @@
   function fmtCoord(n) {
     return (typeof n === 'number') ? n.toFixed(6) : '—';
   }
-// Replace your existing fmtTimeHHMM with this:
-function fmtTimeHHMM(val) {
-  if (!val) return '—';
+  function fmtTimeHHMM(val) {
+    if (!val) return '—';
 
-  // If already "HH:MM" or "H:MM"
-  if (typeof val === 'string') {
-    // 1) Plain clock strings like "21:33" or "9:05" (optionally with seconds)
-    const m = val.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-    if (m) {
-      const hh = m[1].padStart(2, '0');
-      const mm = m[2];
+    if (typeof val === 'string') {
+      const m = val.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+      if (m) {
+        const hh = m[1].padStart(2, '0');
+        const mm = m[2];
+        return `${hh}:${mm}`;
+      }
+      const d = new Date(val);
+      if (!isNaN(d)) {
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
+      return '—';
+    }
+
+    if (val instanceof Date && !isNaN(val)) {
+      const hh = String(val.getHours()).padStart(2, '0');
+      const mm = String(val.getMinutes()).padStart(2, '0');
       return `${hh}:${mm}`;
     }
-    // 2) Try ISO or any Date-parsable string
-    const d = new Date(val);
-    if (!isNaN(d)) {
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mm = String(d.getMinutes()).padStart(2, '0');
-      return `${hh}:${mm}`;
+
+    if (typeof val === 'number') {
+      const d = new Date(val);
+      if (!isNaN(d)) {
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
     }
+
     return '—';
   }
-
-  // Date instance
-  if (val instanceof Date && !isNaN(val)) {
-    const hh = String(val.getHours()).padStart(2, '0');
-    const mm = String(val.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
-  }
-
-  // Epoch milliseconds (number)
-  if (typeof val === 'number') {
-    const d = new Date(val);
-    if (!isNaN(d)) {
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mm = String(d.getMinutes()).padStart(2, '0');
-      return `${hh}:${mm}`;
-    }
-  }
-
-  return '—';
-}
 
   function pointPopupHTML(pt, idx) {
     const label = (pt.label != null) ? String(pt.label) : String(idx + 1);
@@ -158,10 +178,20 @@ function fmtTimeHHMM(val) {
     `;
   }
 
-  function areaPopupHTML(area) {
+  // Build the "when" line for an Area card using an override date (from the LOI table) if provided.
+  function buildAreaWhen(area, overrideDateText) {
+    const timePart = extractTimeRange(area.timeanddate);
+    if (overrideDateText) {
+      return timePart ? `${overrideDateText}, ${timePart}` : `${overrideDateText}`;
+    }
+    return area.timeanddate || '';
+  }
+
+  function areaPopupHTML(area, overrideDateText) {
     const label = area.label || 'Area';
     const type = area.type ? `<span class="app-area-chip">${area.type}</span>` : '';
-    const when = area.timeanddate ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${area.timeanddate}</p>` : '';
+    const whenText = buildAreaWhen(area, overrideDateText);
+    const when = whenText ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>` : '';
     return `
       <div class="app-area-card">
         <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${label}</h4>
@@ -180,7 +210,7 @@ function fmtTimeHHMM(val) {
     const {
       scrollToMap = true,
       highlightRowEl = null,
-      dataUrl = DEFAULT_LOI_URL   // <<< default = original LOI file
+      dataUrl = DEFAULT_LOI_URL
     } = opts;
 
     const map = window.map;
@@ -189,7 +219,6 @@ function fmtTimeHHMM(val) {
       return;
     }
 
-    // fetch & pick trace (from the specified dataset)
     const data = await loadGpsData(dataUrl);
     const trace = data && data[traceKey];
     if (!trace) {
@@ -197,15 +226,28 @@ function fmtTimeHHMM(val) {
       return;
     }
 
+    // If this was triggered from a table row, compute an override date from the first cell
+    let overrideDateText = '';
+    if (highlightRowEl) {
+      const dateCell = highlightRowEl.querySelector('td');
+      if (dateCell) {
+        overrideDateText = htmlToPlain(dateCell.innerHTML).trim();
+      }
+    }
+
     // Delegate to object plotter
-    return window.plotTraceObject(trace, { scrollToMap, highlightRowEl });
+    return window.plotTraceObject(trace, { scrollToMap, highlightRowEl, overrideDateText });
   }
+
+  // ⚠️ Export plotTrace for other scripts (e.g. bh-update-map.js)
+  window.plotTrace = plotTrace;
 
   // ---------- plot a provided trace object (for filtered scenarios) ----------
   window.plotTraceObject = async function (traceObj, opts = {}) {
     const {
       scrollToMap = true,
-      highlightRowEl = null
+      highlightRowEl = null,
+      overrideDateText = ''
     } = opts;
 
     const map = window.map;
@@ -238,7 +280,6 @@ function fmtTimeHHMM(val) {
         })
         .addTo(groups.numbers);
 
-      // NEW: point detail popup on click
       marker.bindPopup(pointPopupHTML(pt, idx), {
         closeButton: true,
         autoClose: true,
@@ -266,7 +307,7 @@ function fmtTimeHHMM(val) {
 
         accumulateBounds(allBounds, pts);
 
-        poly.bindPopup(areaPopupHTML(area), {
+        poly.bindPopup(areaPopupHTML(area, overrideDateText), {
           closeButton: true,
           autoClose: false,
           closeOnClick: false,
@@ -277,25 +318,21 @@ function fmtTimeHHMM(val) {
       }
     });
 
-    // ---- fit to everything we added ----
     if (allBounds.isValid()) {
       map.fitBounds(allBounds, { padding: [28, 28] });
     }
 
-    // ---- highlight the clicked row (sticky) ----
     if (highlightRowEl) {
       if (highlightedRow) highlightedRow.classList.remove('highlighted-row');
       highlightRowEl.classList.add('highlighted-row');
       highlightedRow = highlightRowEl;
     }
 
-    // ---- optionally scroll to the map heading on user action ----
     if (scrollToMap) {
       const heading = document.getElementById('map-header');
       if (heading) heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // status live region
     const status = document.getElementById('map-status');
     if (status) status.textContent = 'Map updated with filtered GPS trace.';
   };
@@ -319,16 +356,17 @@ function fmtTimeHHMM(val) {
       plotTrace(key, {
         scrollToMap: true,
         highlightRowEl: row,
-        dataUrl: DEFAULT_LOI_URL   // lock to LOI dataset here
+        dataUrl: DEFAULT_LOI_URL
       });
     });
 
-    // 2) On first page load: DO NOT auto-select an LOI row.
-    //    Instead, load the scenarios “latest 5 mins” trace (no highlight, no scroll).
-    plotTrace('bh_20250903', {
-      scrollToMap: false,
-      highlightRowEl: null,
-      dataUrl: SCENARIOS_URL
+    // 2) On first page load: load the scenarios “latest 5 mins” trace (no highlight, no scroll).
+    whenMapReady(() => {
+      plotTrace('bh_20250903', {
+        scrollToMap: false,
+        highlightRowEl: null,
+        dataUrl: SCENARIOS_URL
+      });
     });
   });
 

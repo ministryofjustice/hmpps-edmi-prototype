@@ -93,56 +93,126 @@
     return map;
   }
 
-// Render a simple 7-day bar (yesterday back 6 more). Latest (yesterday) on the RIGHT.
-function renderSevenDayStreak(container, complianceMap) {
-  if (!container) return;
+// Render two rows of 7 nights (total 14): top = older week, bottom = last week.
+// Each cell shows the overnight span "Fri 22–Sat 23 Aug" (19:00→07:00).
+// If the span ends today, we append " (Today)". Returns { totalYes }.
+// Uses fixed 3-letter months (Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec).
+function renderTwoWeekStreak(container, complianceMap) {
+  if (!container) return { totalYes: 0 };
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   const now = new Date();
-  const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  base.setDate(base.getDate() - 1); // yesterday
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  // Build items right -> left: [yesterday-6, ..., yesterday-1, yesterday]
+  // Build end-dates from (today - 13) … to … (today)
   const items = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(base);
-    d.setDate(base.getDate() - i);
-    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const ok = !!complianceMap.get(iso);
-    items.push({ iso, ok, d });
+  for (let back = 13; back >= 0; back--) {
+    const end = new Date(today);
+    end.setDate(today.getDate() - back); // morning date (07:00)
+    const start = new Date(end);
+    start.setDate(end.getDate() - 1);    // previous evening date (19:00)
+
+    const endIso = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+
+    // ok: true = at home; false = not at home; undefined = no data
+    let ok = complianceMap.has(endIso) ? !!complianceMap.get(endIso) : undefined;
+    items.push({ start, end, endIso, ok });
   }
 
-  const wrap = document.createElement('div');
-  wrap.className = 'app-streak';
+  const week1 = items.slice(0, 7);   // older week
+  const week2 = items.slice(7, 14);  // last week (latest at rightmost)
 
-  items.forEach(({ ok, d }) => {
-    const item = document.createElement('div');
-    item.className = 'app-streak__item';
+  // Demo shaping: ensure week2 has at least 1 red (only if none present)
+  const redsInWeek2 = week2.reduce((n, it) => n + (it.ok === false ? 1 : 0), 0);
+  if (redsInWeek2 === 0) {
+    week2[3].ok = false; // middle-ish cell
+  }
 
-    const bar = document.createElement('div');
-    bar.className = `app-streak__bar ${ok ? 'app-streak__bar--yes' : 'app-streak__bar--no'}`;
-    bar.setAttribute('title',
-      `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })} — ${ok ? 'at home' : 'not at home'}`
-    );
-    bar.setAttribute('aria-label',
-      `${d.toLocaleDateString('en-GB')} — ${ok ? 'at home overnight' : 'not at home overnight'}`
-    );
+  // Final state per day (treat undefined as green for the demo)
+  const allDays = [...week1, ...week2].map(it => ({
+    start: it.start,
+    end: it.end,
+    state: (it.ok === false) ? 'no' : 'yes'
+  }));
+  const totalYes = allDays.reduce((n, it) => n + (it.state === 'yes' ? 1 : 0), 0);
 
-    const label = document.createElement('div');
-    label.className = 'app-streak__label';
-    label.textContent = d.toLocaleDateString('en-GB', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long'
+  // Formatters (force 3-letter months)
+  function wdShort(d) { return d.toLocaleDateString('en-GB', { weekday: 'short' }); } // Fri
+  function wdLong(d)  { return d.toLocaleDateString('en-GB', { weekday: 'long'  }); } // Friday
+  function dayNum(d)  { return d.getDate(); }
+  function mon3(d)    { return MONTHS[d.getMonth()]; }
+
+  // Compact range label: "Fri 22–Sat 23 Aug" (or include both months if needed); "(Today)" if end is today
+  // Compact range label: use end month only when months differ
+function rangeLabel(start, end) {
+  const endsToday = end.getFullYear() === today.getFullYear()
+    && end.getMonth() === today.getMonth()
+    && end.getDate() === today.getDate();
+
+  const sWD = wdShort(start); const eWD = wdShort(end);
+  const sD  = dayNum(start);  const eD  = dayNum(end);
+  const sM  = mon3(start);    const eM  = mon3(end);
+
+  // If month changes across the night, show ONLY the end month (e.g. "Sun 31–Mon 1 Sep")
+  const monthPart = (sM === eM) ? ` ${eM}` : ` ${eM}`;
+  const base = `${sWD} ${sD}–${eWD} ${eD}${monthPart}`;
+
+  return endsToday ? `${base} (Today)` : base;
+}
+
+  // Helper to render one 7-day row
+  function renderRow(days) {
+    const row = document.createElement('div');
+    row.className = 'app-streak';
+    days.forEach(({ start, end, state }) => {
+      const item = document.createElement('div');
+      item.className = 'app-streak__item';
+
+      const bar = document.createElement('div');
+      bar.className = `app-streak__bar app-streak__bar--${state}`;
+
+      // Titles/ARIA with fixed 3-letter months too
+      const startTitle = `${wdShort(start)} ${dayNum(start)} ${mon3(start)}`;
+      const endTitle   = `${wdShort(end)} ${dayNum(end)} ${mon3(end)}`;
+      const startFull  = `${wdLong(start)} ${dayNum(start)} ${mon3(start)} ${start.getFullYear()}`;
+      const endFull    = `${wdLong(end)} ${dayNum(end)} ${mon3(end)} ${end.getFullYear()}`;
+
+      bar.setAttribute('title',
+        `Overnight 19:00 ${startTitle} → 07:00 ${endTitle} — ${state === 'yes' ? 'at home' : 'not at home'}`
+      );
+      bar.setAttribute('aria-label',
+        `Overnight 19:00 ${startFull} → 07:00 ${endFull} — ${state === 'yes' ? 'at home' : 'not at home'}`
+      );
+
+      const label = document.createElement('div');
+      label.className = 'app-streak__label';
+      label.textContent = rangeLabel(start, end);
+
+      item.appendChild(bar);
+      item.appendChild(label);
+      row.appendChild(item);
     });
+    return row;
+  }
 
-    item.appendChild(bar);
-    item.appendChild(label);
-    wrap.appendChild(item);
-  });
+  // Build wrapper with two rows
+  const wrap = document.createElement('div');
+  wrap.className = 'app-streak-2w';
+
+  const week1WithState = allDays.slice(0, 7);
+  const week2WithState = allDays.slice(7, 14);
+
+  wrap.appendChild(renderRow(week1WithState));
+  wrap.appendChild(renderRow(week2WithState));
 
   container.innerHTML = '';
   container.appendChild(wrap);
+
+  return { totalYes };
 }
+
+//END renderTwoWeekStreak
 
 
 
@@ -183,20 +253,15 @@ function renderSevenDayStreak(container, complianceMap) {
     // Build compliance from the current LOI table
     const complianceMap = computeOvernightComplianceFromTable();
 
-    // Render 7-day streak graph
-    renderSevenDayStreak($('#home-overnight-streak'), complianceMap);
+    // Render two-week streak graph and get totals
+const res = renderTwoWeekStreak($('#home-overnight-streak'), complianceMap);
 
-    // Render summary sentence
-    const summary = $('#home-overnight-summary');
-    if (summary) {
-      const consec = countConsecutiveYes(complianceMap);
-      const lastNo = findMostRecentNo(complianceMap);
-      const dateStr = lastNo
-        ? lastNo.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-        : '—';
-      summary.innerHTML =
-        `Penny ${consec > 0 ? `<strong>remained at home overnight</strong> for the last <strong>${consec}</strong> consecutive night${consec === 1 ? '' : 's'}` : 'has not remained at home overnight recently'}. ` +
-        (lastNo ? `The last time she was <strong>not</strong> at home during those times was <strong>${dateStr}</strong>.` : '');
-    }
+// New summary: total compliances over the last 14 nights
+const summary = $('#home-overnight-summary');
+if (summary) {
+  summary.innerHTML =
+    `Penny <strong>remained at home overnight</strong> for <strong>${res.totalYes}</strong> nights in the past two weeks.`;
+}
+
   });
 })();

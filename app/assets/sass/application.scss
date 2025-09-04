@@ -31,35 +31,51 @@ tr.is-active-row > td { background-color: #F3F2F1; }
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;           /* a touch more room to fit labels */
-  align-items: end;
+  align-items: start;
 }
 
 .app-streak__item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  justify-content: flex-start; /* ensure content starts at top of the cell */
 }
+
 
 .app-streak__bar {
   width: 100%;
   height: 16px;
   border-radius: 3px;
   background: #b1b4b6; /* fallback */
+  margin: 0;
 }
+
 
 .app-streak__bar--yes { background: #00703c; } /* GOV.UK green */
 .app-streak__bar--no  { background: #d4351c; } /* GOV.UK red */
 
 /* Date label under each bar */
+/* allow wrapping into two lines, keep centred */
 .app-streak__label {
-  font-size: 14px;          /* ~16px is fine too; use 14px to help fit */
+  font-size: 14px;
   line-height: 1.2;
   text-align: center;
-  white-space: nowrap;      /* prevent awkward wraps */
-  overflow: hidden;
-  text-overflow: ellipsis;  /* just in case */
+  white-space: normal;    /* <-- allow wrapping */
+  word-break: break-word; /* break if needed */
+  max-width: 100%;        /* constrain to the grid cell */
+  margin: 0;
 }
+
+/* two-week wrapper */
+.app-streak-2w {
+  display: grid;
+  grid-template-rows: auto auto;
+  row-gap: 20px;
+}
+
+
+
 
 .no-wrap {
     white-space: nowrap;

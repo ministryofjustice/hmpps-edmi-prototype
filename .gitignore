@@ -10,3 +10,4 @@ usage-data-config.json
 # General ignores
 .DS_Store
 .idea
+EDMI_GPS_LOI.code-workspace

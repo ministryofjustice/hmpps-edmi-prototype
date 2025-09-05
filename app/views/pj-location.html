@@ -152,7 +152,7 @@
 </div>
 
 <h3 class="govuk-heading-s" id="filter-by-loi">2. Or filter map by locations of interest</h3>
-<p class="govuk-body">Locations of interests are connected to a person on probation’s licence conditions.</p>
+<p class="govuk-body">Each row in the locations of interest table records a separate occasion when Penny visited a location of interest. These locations are connected to a person on probation’s licence conditions.</p>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="loi-filters" class="loi-filters__form" novalidate data-tag-fitted="2025-06-08">
@@ -344,10 +344,15 @@
       <p id="home-overnight-summary" class="govuk-body govuk-!-margin-bottom-3">
         <!-- Filled by JS using the LOI table rows -->
       </p>
+      
+      {{ govukDetails({
+        summaryText: "What does overnight mean?",
+        text: "Penny is not subject to an overnight curfew. However, standard licence conditions apply, including 'Reside permanently at an approved address' and 'Not to travel outside the UK'."
+      }) }}
 
       <!-- 7-day yes/no streak (yesterday back 6 more) -->
       <div id="home-overnight-streak" class="govuk-!-margin-bottom-1"
-           aria-label="Overnight home compliance (last 7 nights)"></div>
+           aria-label="Overnight home compliance (last 14 nights)"></div>
 
     </div>
   </div>

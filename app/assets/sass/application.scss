@@ -5,6 +5,34 @@
 
 // Add extra styles here
 
+/* Environment banner badge */
+/* Header environment badge (uses the header's navigation slot) */
+.app-env-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+  border-radius: 0px;
+  background: #cce1f5;   /* light blue */
+  color: #0B0C0C;        /* GOV.UK blue */
+}
+
+
+/* Remove underline/hover states the header adds to nav links */
+.app-env-badge,
+.app-env-badge:link,
+.app-env-badge:visited,
+.app-env-badge:hover,
+.app-env-badge:active,
+.app-env-badge:focus {
+  text-decoration: none;
+  outline: none;
+  box-shadow: none;
+}
+
+
 /* Keep only the first calendar button per picker */
 .moj-date-picker__button--clear,
 .moj-date-picker__remove { display: none !important; }

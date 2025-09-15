@@ -22,11 +22,11 @@
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
     <span class="govuk-caption-m govuk-!-margin-bottom-2">
-      <abbr title="Case reference number" style="text-decoration: none">CRN</abbr>: X778126 
+      <abbr title="Case reference number" style="text-decoration: none">CRN</abbr>: X662727 
       <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
-      Date of birth: 17 Mar 1996 (Age 27)
+      Date of birth: 17 Mar 1996 (Age 29)
       <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
-      Sentence: GPS community single order​​
+      Sentence: CJA - Std Determinate Custody
     </span>
     <h1 class="govuk-heading-l govuk-!-margin-bottom-4">
       Penny Jordan
@@ -136,7 +136,7 @@
         <button class="govuk-button" data-module="govuk-button" id="bh-apply-filters" type="submit">
           Update map
         </button>
-        <a href="/pj-location?clear=1" id="bh-clear-filters" class="govuk-link" data-turbo="false">Clear filters</a>
+        <a href="/bh-location?clear=1" id="bh-clear-filters" class="govuk-link" data-turbo="false">Clear filters</a>
       </div>
 
     </div>
@@ -152,7 +152,7 @@
 </div>
 
 <h3 class="govuk-heading-s" id="filter-by-loi">2. Or filter map by locations of interest</h3>
-<p class="govuk-body">Each row in the locations of interest table records a separate occasion when Penny visited a location of interest. These locations are connected to a person on probation’s licence conditions.</p>
+<p class="govuk-body">Locations of interests are connected to a person on probation’s licence conditions.</p>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="loi-filters" class="loi-filters__form" novalidate data-tag-fitted="2025-06-08">
@@ -160,13 +160,19 @@
       <div class="loi-filters__group">
         <label class="govuk-label" for="filter-type">Location</label>
         <select class="govuk-select" id="filter-type" name="filter-type">
-          <option value="non-home" selected>All locations (not including Home)</option>
-          <option value="">All location (including Home)</option>
-          <option>Home</option>
-          <option>Public house</option>
-          <option>Sports and recreational facilities</option>
-          <option>Licensed betting office</option>
-        </select>
+  <option value="" selected>All location types</option>
+  <option value="anywhere outside the uk">Anywhere outside the UK</option>
+  <option value="approved premises">Approved premises</option>
+  <option value="licensed betting shops">Licensed betting shops</option>
+  <option value="places of worship">Places of worship</option>
+  <option value="police stations">Police stations</option>
+  <option value="probation offices">Probation offices</option>
+  <option value="public houses">Public houses</option>
+  <option value="schools">Schools</option>
+  <option value="swimming pools">Swimming pools</option>
+</select>
+
+
       </div>
 
       <div class="loi-filters__group">
@@ -204,123 +210,79 @@
     { text: "Time", attributes: { "aria-sort": "none" }, classes: "no-wrap" },
     { text: "View on map" }
   ],
-  rows: [
-    [
-      { html: loiDates[start + 0].html | safe, attributes: { "data-sort-value": loiDates[start + 0].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "10:57pm to 11:59pm<br/>(1 hour 2 mins)", attributes: { "data-sort-value": "62" }, classes: "no-wrap" },
-      { html: '<a href="#" class="plot-link govuk-link no-wrap" data-trace="home">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 1].html | safe, attributes: { "data-sort-value": loiDates[start + 1].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "9:33pm to 10:42pm<br/>(1 hour 9 mins)", attributes: { "data-sort-value": "69" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h1">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 2].html | safe, attributes: { "data-sort-value": loiDates[start + 2].iso } },
-      { text: "Public house", attributes: { "data-sort-value": "public house" } },
-      { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-      { html: "7:13pm to 9:27pm<br/>(2 hours 14 mins)", attributes: { "data-sort-value": "134" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 3].html | safe, attributes: { "data-sort-value": loiDates[start + 3].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 8:33am<br/>(8 hours 33 mins)", attributes: { "data-sort-value": "513" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h2">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 4].html | safe, attributes: { "data-sort-value": loiDates[start + 4].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 11:59pm<br/>(23 hours 59 mins)", attributes: { "data-sort-value": "719" }, classes: "no-wrap" },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h3">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 5].html | safe, attributes: { "data-sort-value": loiDates[start + 5].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 11:59pm<br/>(23 hours 59 mins)", attributes: { "data-sort-value": "719" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h4">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 6].html | safe, attributes: { "data-sort-value": loiDates[start + 6].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "11:38pm to 11:59pm<br/>(21 mins)", attributes: { "data-sort-value": "21" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h5">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 7].html | safe, attributes: { "data-sort-value": loiDates[start + 7].iso } },
-      { text: "Public house", attributes: { "data-sort-value": "public house" } },
-      { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-      { html: "7:32pm to 11:05pm<br/>(3 hours 33 mins)", attributes: { "data-sort-value": "213" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 8].html | safe, attributes: { "data-sort-value": loiDates[start + 8].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 9:13am<br/>(9 hours 13 mins)", attributes: { "data-sort-value": "553" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h6">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 9].html | safe, attributes: { "data-sort-value": loiDates[start + 9].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "9:45pm to 11:59pm<br/>(2 hours 14 mins)", attributes: { "data-sort-value": "134" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h7">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 10].html, attributes: { "data-sort-value": loiDates[start + 10].iso } },
-      { text: "Sports and recreational facilities", attributes: { "data-sort-value": "sports" } },
-      { html: "Colchester Sports Park<br/>Cuckoo Farm Way,<br/>Colchester,<br/>Essex<br/>CO4 5YX" },
-      { html: "9:49am to 11:03am<br/>(1 hour 14 mins)", attributes: { "data-sort-value": "74" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="sports-park">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 11].html, attributes: { "data-sort-value": loiDates[start + 11].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 9:03am<br/>(9 hours 3 mins)", attributes: { "data-sort-value": "543" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h8">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 12].html, attributes: { "data-sort-value": loiDates[start + 12].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 11:59pm<br/>(23 hours 59 mins)", attributes: { "data-sort-value": "719" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h9">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 13].html, attributes: { "data-sort-value": loiDates[start + 13].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "7:04pm to 11:59pm<br/>(4 hours 55 mins)", attributes: { "data-sort-value": "295" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h10">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 14].html, attributes: { "data-sort-value": loiDates[start + 14].iso } },
-      { text: "Licensed betting office", attributes: { "data-sort-value": "licensed betting office" } },
-      { html: "Ladbrokes<br/>41, 42 St Botolph's St<br/>Colchester<br/>CO2 7EA" },
-      { html: "12:21pm to 12:36pm<br/>(15 mins)", attributes: { "data-sort-value": "15" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="ladbrokes">View</a>' }
-    ],
-    [
-      { html: loiDates[start + 15].html, attributes: { "data-sort-value": loiDates[start + 15].iso } },
-      { text: "Home", attributes: { "data-sort-value": "home" } },
-      { html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR" },
-      { html: "00:00am to 11:13am<br/>(11 hours 13 mins)", attributes: { "data-sort-value": "673" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="home-h11">View</a>' }
-    ]
+rows: [
+  [
+    { html: loiDates[start + 0].html | safe, attributes: { "data-sort-value": loiDates[start + 0].iso } },
+    { text: "Public houses", attributes: { "data-sort-value": "public houses" } },
+    { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
+    { html: "2:19pm to 7:59pm<br/>(5 hours 40 mins)", attributes: { "data-sort-value": "340" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-1">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 1].html | safe, attributes: { "data-sort-value": loiDates[start + 1].iso } },
+    { text: "Schools", attributes: { "data-sort-value": "schools" } },
+    { html: "Colchester County High School for Girls<br/>Norman Way<br/>Colchester<br/>CO3 3US" },
+    { html: "1:33pm to 2:04pm<br/>(31 mins)", attributes: { "data-sort-value": "31" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="school">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 2].html | safe, attributes: { "data-sort-value": loiDates[start + 2].iso } },
+    { text: "Public houses", attributes: { "data-sort-value": "public houses" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { html: "11:12am to 1:27pm<br/>(2 hours 15 mins)", attributes: { "data-sort-value": "135" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 3].html | safe, attributes: { "data-sort-value": loiDates[start + 3].iso } },
+    { text: "Probation offices", attributes: { "data-sort-value": "probation offices" } },
+    { html: "Colchester Probation Service<br/>Portal House<br/>27 Southway<br/>Colchester<br/>CO2 7BA" },
+    { html: "9:03am to 9:33am<br/>(30 mins)", attributes: { "data-sort-value": "30" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="probation-office">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 4].html | safe, attributes: { "data-sort-value": loiDates[start + 4].iso } },
+    { text: "Swimming pools", attributes: { "data-sort-value": "swimming pools" } },
+    { html: "Leisure World Colchester<br/>Cowdray Ave<br/>Colchester<br/>CO1 1YH" },
+    { html: "11:05am to 12:26pm<br/>(1 hour 21 mins)", attributes: { "data-sort-value": "81" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="swimming-pool">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 5].html | safe, attributes: { "data-sort-value": loiDates[start + 5].iso } },
+    { text: "Police stations", attributes: { "data-sort-value": "police stations" } },
+    { html: "Essex Police<br/>Colchester<br/>CO3 3BU" },
+    { html: "10:01am to 10:17am<br/>(16 mins)", attributes: { "data-sort-value": "16" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="police-station">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 6].html | safe, attributes: { "data-sort-value": loiDates[start + 6].iso } },
+    { text: "Public houses", attributes: { "data-sort-value": "public houses" } },
+    { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
+    { html: "11:38pm to 11:59pm<br/>(21 mins)", attributes: { "data-sort-value": "21" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 7].html | safe, attributes: { "data-sort-value": loiDates[start + 7].iso } },
+    { text: "Public houses", attributes: { "data-sort-value": "public houses" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { html: "7:32pm to 11:05pm<br/>(3 hours 33 mins)", attributes: { "data-sort-value": "213" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-2">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 8].html | safe, attributes: { "data-sort-value": loiDates[start + 8].iso } },
+    { text: "Licensed betting shops", attributes: { "data-sort-value": "licensed betting shops" } },
+    { html: "Ladbrokes<br/>41, 42 St Botolph&#39;s St<br/>Colchester<br/>CO2 7EA" },
+    { html: "1:34pm to 2:13pm<br/>(39 mins)", attributes: { "data-sort-value": "39" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="ladbrokes">View</a>' }
+  ],
+  [
+    { html: loiDates[start + 9].html | safe, attributes: { "data-sort-value": loiDates[start + 9].iso } },
+    { text: "Public houses", attributes: { "data-sort-value": "public houses" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { html: "9:45pm to 11:59pm<br/>(2 hours 14 mins)", attributes: { "data-sort-value": "134" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-3">View</a>' }
   ]
+]
 }) }}
-
-
 
 {{ govukPagination({
   next: { href: "#" },
@@ -331,37 +293,10 @@
   ]
 }) }}
 
-
-<!-- Staying at home overnight -->
-<section class="govuk-!-margin-bottom-6" aria-labelledby="home-overnight-heading">
-  <h3 class="govuk-heading-s" id="home-overnight-heading">Compliance</h3>
-
-  <div class="app-summary-card govuk-!-margin-bottom-3">
-    <header class="app-summary-card__header">
-      <h3 class="app-summary-card__title"><strong>Staying at home overnight</strong></h3>
-    </header>
-    <div class="app-summary-card__body">
-      <p id="home-overnight-summary" class="govuk-body govuk-!-margin-bottom-3">
-        <!-- Filled by JS using the LOI table rows -->
-      </p>
-      
-      {{ govukDetails({
-        summaryText: "What does overnight mean?",
-        text: "Penny is not subject to an overnight curfew. However, standard licence conditions apply, including 'Reside permanently at an approved address' and 'Not to travel outside the UK'."
-      }) }}
-
-      <!-- 7-day yes/no streak (yesterday back 6 more) -->
-      <div id="home-overnight-streak" class="govuk-!-margin-bottom-1"
-           aria-label="Overnight home compliance (last 14 nights)"></div>
-
-    </div>
-  </div>
-</section>
-
-
 {# -------------------------
    ✅ Compliance block (kept exactly as requested)
    ------------------------- #}
+<h3 class="govuk-heading-s" id="tag-breaches">Compliance</h3>
 
 <section class="app-summary-card govuk-!-margin-bottom-6 app-summary-card--large-title">
   <header class="app-summary-card__header">
@@ -493,15 +428,6 @@
   </div>
 </section>
 
-<!-- Penny-specific config so gps-map.js points at Penny’s data -->
-<script>
-  window.GPS_CONFIG = {
-    DEFAULT_LOI_URL: '/public/data/gps-traces-penny.json',
-    SCENARIOS_URL:   '/public/data/gps-traces-penny-demo.json',
-    DEFAULT_SCENARIO_KEY: 'penny_20250903'
-  };
-</script>
-
 <!-- Leaflet core -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -527,10 +453,6 @@
 <script src="/public/javascripts/map-overlays.js"></script>
 <script src="/public/javascripts/gps-map.js"></script>
 <script src="/public/javascripts/bh-update-map.js"></script>
-<script src="/public/javascripts/penny-home.js"></script>
-<script src="/public/javascripts/pj-loi-default.js"></script>
-
-
 
 <script>
   // Enhancements only — map is created in /public/javascripts/bh-location-init.js

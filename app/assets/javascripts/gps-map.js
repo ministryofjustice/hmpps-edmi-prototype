@@ -190,19 +190,34 @@
     return area.timeanddate || '';
   }
 
-  function areaPopupHTML(area, overrideDateText) {
-    const label = area.label || 'Area';
-    const type = area.type ? `<span class="app-area-chip">${area.type}</span>` : '';
-    const whenText = buildAreaWhen(area, overrideDateText);
-    const when = whenText ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>` : '';
-    return `
-      <div class="app-area-card">
-        <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${label}</h4>
-        ${type}
-        ${when}
-      </div>
-    `;
-  }
+ function areaPopupHTML(area, overrideDateText) {
+  const label = area.label || 'Area';
+  const type = area.type ? `<span class="app-area-chip">${area.type}</span>` : '';
+  const whenText = buildAreaWhen(area, overrideDateText);
+  const when = whenText ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>` : '';
+
+  // NEW: optional building functions block
+  const hasFunctions = Array.isArray(area.buildingFunctions) && area.buildingFunctions.length > 0;
+  const heading = area.notesHeading || 'This building has multiple functions:';
+  const notes = hasFunctions ? `
+    <div class="app-area-notes govuk-!-margin-top-2 govuk-!-margin-bottom-2">
+      <p class="govuk-!-margin-top-0 govuk-!-margin-bottom-1" style="color:#0b0c0c;">${heading}</p>
+      <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-0 govuk-!-margin-bottom-0" style="color:#0b0c0c;">
+        ${area.buildingFunctions.map(item => `<li>${item}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  return `
+    <div class="app-area-card">
+      <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${label}</h4>
+      ${type}
+      ${when}
+      ${notes}
+    </div>
+  `;
+}
+
 
   function accumulateBounds(bounds, latlngs) {
     latlngs.forEach(ll => bounds.extend(ll));

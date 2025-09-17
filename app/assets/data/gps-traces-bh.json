@@ -123,6 +123,13 @@
         "label": "Colchester Probation Service, Portal House, 27 Southway, Colchester, CO2 7BA",
         "type": "Probation office",
         "timeanddate": "Monday 22 September 2025, 9:03am to 9:33am",
+        "notesHeading": "This building has multiple functions:",
+        "buildingFunctions": [
+          "Ground: Retail",
+          "1st floor: Offices",
+          "2nd floor: Residential",
+          "3rd floor: Residential"
+        ],
         "coordinates": [
           { "lat": 51.887198, "lng": 0.894521 },
           { "lat": 51.887163, "lng": 0.894864 },

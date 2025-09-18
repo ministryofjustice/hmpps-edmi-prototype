@@ -18,7 +18,7 @@
     "areas": [
       {
         "label": "Kings Arms, 61–63 Crouch Street, Colchester, CO3 3EY",
-        "type": "Public house",
+        "type": "Pub",
         "timeanddate": "Monday 22 September 2025, 2:19pm to 7:59pm",
         "coordinates": [
           { "lat": 51.887957, "lng": 0.892628 },
@@ -90,7 +90,7 @@
     "areas": [
       {
         "label": "The Fusilier Bar & Restaurant, Aingers Green Rd, Great Bentley, Colchester, CO7 8NH",
-        "type": "Public house",
+        "type": "Pub",
         "timeanddate": "Monday 22 September 2025, 11:12am to 1:27pm",
         "coordinates": [
           { "lat": 51.84213239738854, "lng": 1.0743725387308236 },
@@ -246,7 +246,7 @@
     "areas": [
       {
         "label": "Kings Arms, 61–63 Crouch Street, Colchester, CO3 3EY",
-        "type": "Public house",
+        "type": "Pub",
         "timeanddate": "Monday 22 September 2025, 2:19pm to 7:59pm",
         "coordinates": [
           { "lat": 51.887957, "lng": 0.892628 },
@@ -273,7 +273,7 @@
     "areas": [
       {
         "label": "The Fusilier Bar & Restaurant, Aingers Green Rd, Great Bentley, Colchester, CO7 8NH",
-        "type": "Public house",
+        "type": "Pub",
         "timeanddate": "Friday 19 September 2025, 7:32pm to 11:05pm",
         "coordinates": [
           { "lat": 51.84213239738854, "lng": 1.0743725387308236 },
@@ -302,7 +302,7 @@
     "areas": [
       {
         "label": "Ladbrokes, 41–42 St Botolph's St, Colchester, CO2 7EA",
-        "type": "Licensed betting shop",
+        "type": "Betting shop",
         "timeanddate": "Friday 19 September 2025, 1:34pm to 2:13pm",
         "coordinates": [
           { "lat": 51.887568080609455, "lng": 0.90346687520216 },
@@ -327,7 +327,7 @@
     "areas": [
       {
         "label": "The Fusilier Bar & Restaurant, Aingers Green Rd, Great Bentley, Colchester, CO7 8NH",
-        "type": "Public house",
+        "type": "Pub",
         "timeanddate": "Friday 19 September 2025, 9:45pm to 11:59pm",
         "coordinates": [
           { "lat": 51.84213239738854, "lng": 1.0743725387308236 },

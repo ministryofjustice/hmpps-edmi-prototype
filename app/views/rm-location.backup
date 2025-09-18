@@ -148,9 +148,9 @@
         }
       },
       {
-        text: "Public house",
+        text: "Pub",
         attributes: {
-          "data-sort-value": "public house"
+          "data-sort-value": "Pub"
         }
       },
       {
@@ -339,9 +339,9 @@
         }
       },
       {
-        text: "Public house",
+        text: "Pub",
         attributes: {
-          "data-sort-value": "public house"
+          "data-sort-value": "Pub"
         }
       },
       {

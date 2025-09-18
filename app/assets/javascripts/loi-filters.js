@@ -96,7 +96,7 @@
             // show everything EXCEPT exact 'home'
             if (r.type === 'home') match = false;
           } else {
-            // normal contains check (e.g. "public house")
+            // normal contains check (e.g. "Pub")
             if (!r.type.includes(typeFilterRaw)) match = false;
           }
         }

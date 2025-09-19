@@ -45,12 +45,12 @@
 }
 
 .highlighted-row {
-  background-color: #F3F2F1; 
+  background-color: #FFEE80;
   transition: background-color 0.3s ease;
 }
 
 /* Permanent highlight for the active table row */
-tr.is-active-row > td { background-color: #F3F2F1; }
+tr.is-active-row > td { background-color: #FFEE80; }
 
 
 /* Penny's Home/Not home stuff */
@@ -328,6 +328,41 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
 
 .leaflet-popup-tip {
   background: white;
+}
+
+.app-popup-panel {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  background: #f3f2f1; /* GOV.UK light grey */
+  margin-top: 8px;
+}
+
+.app-popup-panel__icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+}
+
+.app-popup-panel__icon img {
+  width: 48px;
+  height: 48px;
+  display: block;
+}
+
+.app-popup-functions {
+  list-style: none; /* removes visible bullets */
+  padding-left: 0;  /* no indent */
+  margin: 0;
+}
+
+.app-popup-functions li {
+  font-size: 16px;
+  line-height: 1.4;
+  margin: 0;
 }
 
 

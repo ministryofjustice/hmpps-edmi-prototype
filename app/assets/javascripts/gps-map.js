@@ -190,21 +190,30 @@
     return area.timeanddate || '';
   }
 
- function areaPopupHTML(area, overrideDateText) {
+function areaPopupHTML(area, overrideDateText) {
   const label = area.label || 'Area';
   const type = area.type ? `<span class="app-area-chip">${area.type}</span>` : '';
   const whenText = buildAreaWhen(area, overrideDateText);
-  const when = whenText ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>` : '';
+  const when = whenText
+    ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>`
+    : '';
 
-  // NEW: optional building functions block
+  // Building functions in grey panel with icon, styled list (no visible bullets)
   const hasFunctions = Array.isArray(area.buildingFunctions) && area.buildingFunctions.length > 0;
   const heading = area.notesHeading || 'This building has multiple functions:';
   const notes = hasFunctions ? `
-    <div class="app-area-notes govuk-!-margin-top-2 govuk-!-margin-bottom-2">
-      <p class="govuk-!-margin-top-0 govuk-!-margin-bottom-1" style="color:#0b0c0c;">${heading}</p>
-      <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-0 govuk-!-margin-bottom-0" style="color:#0b0c0c;">
-        ${area.buildingFunctions.map(item => `<li>${item}</li>`).join('')}
-      </ul>
+    <div class="app-popup-panel" role="group" aria-labelledby="bf-title">
+      <div class="app-popup-panel__icon" aria-hidden="true">
+        <img src="/public/images/icons/multi-use.svg" width="48" height="48" alt="">
+      </div>
+      <div class="app-popup-panel__content">
+        <p id="bf-title" class="govuk-body-s govuk-!-margin-bottom-1 govuk-!-margin-top-0">
+          ${heading}
+        </p>
+        <ul class="app-popup-functions govuk-list govuk-list--bullet">
+          ${area.buildingFunctions.map(item => `<li>${item}</li>`).join('')}
+        </ul>
+      </div>
     </div>
   ` : '';
 
@@ -217,7 +226,6 @@
     </div>
   `;
 }
-
 
   function accumulateBounds(bounds, latlngs) {
     latlngs.forEach(ll => bounds.extend(ll));

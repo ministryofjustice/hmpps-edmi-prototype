@@ -10,16 +10,21 @@
   <p class="govuk-body"><a href="/">Return to prototype</a></p>
 
   <dl class="govuk-summary-list govuk-!-margin-top-6">
+
+
     <div class="govuk-summary-list__row">
       <dt class="govuk-summary-list__key">19 September 2025</dt>
       <dd class="govuk-summary-list__value">
-        Updated LOI terms to "Pub" and "Betting shop" for familiarlity and ease of reading. 
-        <br/><br/>
-        Updated the multi-use popup on the probation office to include new visual styling.
-        <br/><br/>
-        Added new Send to NDelius link and new Send to NDelius page. 
+          Extended the <strong>Send to NDelius</strong> workflow:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Enhanced LOI table links to pass <code>trace</code> and <code>date</code> query parameters.</li>
+      <li>New <strong>ndelius-record</strong> page pre-fills Notes, Date, and Time from LOI data.</li>
+      <li>Practitioner selections (contact type, suspected licence condition breach, outcome, alert, ViSOR, sensitive contact) are captured on record page and carried forward.</li>
+      <li>Added <strong>ndelius-confirmation</strong> page using GOV.UK confirmation pattern, playing back all captured data, with <strong>Duration</strong> broken out as a separate row.</li>
+      <li>Created a shared <code>loi-lookup.js</code> for consistent data across record and confirmation pages.</li>
+      <li>Updated LOI terms to "Pub" and "Betting shop" for familiarlity and ease of reading.</li>
+      <li>Updated the multi-use popup on the probation office to include new visual styling.</li>
       </dd>
-      
     </div>
 
     <div class="govuk-summary-list__row">

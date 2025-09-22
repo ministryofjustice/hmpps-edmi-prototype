@@ -191,16 +191,41 @@
   }
 
 function areaPopupHTML(area, overrideDateText) {
-  const label = area.label || 'Area';
-  const type = area.type ? `<span class="app-area-chip">${area.type}</span>` : '';
-  const whenText = buildAreaWhen(area, overrideDateText);
-  const when = whenText
-    ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>`
-    : '';
+  // 1) Remove anchors entirely, then all tags, then specific junk like "Send to NDelius"
+  const cleanText = (s) => {
+    let str = String(s || "");
+    // remove <a ...>...</a> completely
+    str = str.replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, "");
+    // remove any remaining tags
+    str = str.replace(/<\/?[^>]+>/g, "");
+    // remove literal "Send to NDelius" if it snuck in via textContent
+    str = str.replace(/\bSend\s+to\s+NDelius\b/gi, "");
+    // tidy double spaces/stray commas
+    str = str.replace(/\s{2,}/g, " ").replace(/\s*,\s*,/g, ",").replace(/\s+,/g, ",").trim();
+    return str;
+  };
 
-  // Building functions in grey panel with icon, styled list (no visible bullets)
+  const escapeHTML = (s) => String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+  // Plain, safe values only
+  const labelText = escapeHTML(cleanText(area.label || "Area"));
+  const typeText  = escapeHTML(cleanText(area.type || ""));
+
+  // buildAreaWhen may include the link text if it read from the table cell; clean it hard.
+  const whenRaw  = buildAreaWhen(area, overrideDateText);
+  const whenText = escapeHTML(cleanText(whenRaw));
+
+  const typeChip = typeText ? `<span class="app-area-chip">${typeText}</span>` : "";
+
+  // Optional building functions panel
   const hasFunctions = Array.isArray(area.buildingFunctions) && area.buildingFunctions.length > 0;
-  const heading = area.notesHeading || 'This building has multiple functions:';
+  const headingText  = escapeHTML(cleanText(area.notesHeading || "This building has multiple uses:"));
+
   const notes = hasFunctions ? `
     <div class="app-popup-panel" role="group" aria-labelledby="bf-title">
       <div class="app-popup-panel__icon" aria-hidden="true">
@@ -208,24 +233,30 @@ function areaPopupHTML(area, overrideDateText) {
       </div>
       <div class="app-popup-panel__content">
         <p id="bf-title" class="govuk-body-s govuk-!-margin-bottom-1 govuk-!-margin-top-0">
-          ${heading}
+          ${headingText}
         </p>
         <ul class="app-popup-functions govuk-list govuk-list--bullet">
-          ${area.buildingFunctions.map(item => `<li>${item}</li>`).join('')}
+          ${area.buildingFunctions.map(item => `<li>${escapeHTML(cleanText(item))}</li>`).join("")}
         </ul>
       </div>
     </div>
-  ` : '';
+  ` : "";
+
+  const when = whenText
+    ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>`
+    : "";
 
   return `
     <div class="app-area-card">
-      <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${label}</h4>
-      ${type}
+      <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${labelText}</h4>
+      ${typeChip}
       ${when}
       ${notes}
     </div>
   `;
 }
+
+
 
   function accumulateBounds(bounds, latlngs) {
     latlngs.forEach(ll => bounds.extend(ll));

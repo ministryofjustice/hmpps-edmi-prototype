@@ -66,8 +66,8 @@
           name: "dateFrom",
           label: { text: "Date from" },
           classes: "govuk-input--width-10",
-          value: "04/09/2025",
-          maxDate: "04/09/2025"
+          value: "23/09/2025",
+          maxDate: "23/09/2025"
         }) }}
       </div>
 
@@ -77,8 +77,8 @@
           name: "dateTo",
           label: { text: "Date to" },
           classes: "govuk-input--width-10",
-          value: "04/09/2025",
-          maxDate: "04/09/2025"
+          value: "23/09/2025",
+          maxDate: "23/09/2025"
         }) }}
       </div>
 
@@ -213,6 +213,7 @@
   rows: [
     [
       {
+        text: loiDates[start + 0].text,
         html: (loiDates[start + 0].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=kings-arms-1&amp;date='
           + loiDates[start + 0].iso
@@ -226,6 +227,7 @@
     ],
     [
       {
+        text: loiDates[start + 1].text,
         html: (loiDates[start + 1].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=school&amp;date='
           + loiDates[start + 1].iso
@@ -239,6 +241,7 @@
     ],
     [
       {
+        text: loiDates[start + 2].text,
         html: (loiDates[start + 2].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-1&amp;date='
           + loiDates[start + 2].iso
@@ -252,6 +255,7 @@
     ],
     [
       {
+        text: loiDates[start + 3].text,
         html: (loiDates[start + 3].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=probation-office&amp;date='
           + loiDates[start + 3].iso
@@ -265,6 +269,7 @@
     ],
     [
       {
+        text: loiDates[start + 4].text,
         html: (loiDates[start + 4].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=swimming-pool&amp;date='
           + loiDates[start + 4].iso
@@ -278,6 +283,7 @@
     ],
     [
       {
+        text: loiDates[start + 5].text,
         html: (loiDates[start + 5].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=police-station&amp;date='
           + loiDates[start + 5].iso
@@ -291,6 +297,7 @@
     ],
     [
       {
+        text: loiDates[start + 6].text,
         html: (loiDates[start + 6].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=kings-arms-2&amp;date='
           + loiDates[start + 6].iso
@@ -304,6 +311,7 @@
     ],
     [
       {
+        text: loiDates[start + 7].text,
         html: (loiDates[start + 7].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-2&amp;date='
           + loiDates[start + 7].iso
@@ -317,6 +325,7 @@
     ],
     [
       {
+        text: loiDates[start + 8].text,
         html: (loiDates[start + 8].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=ladbrokes&amp;date='
           + loiDates[start + 8].iso
@@ -330,6 +339,7 @@
     ],
     [
       {
+        text: loiDates[start + 9].text,
         html: (loiDates[start + 9].html | safe)
           + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-3&amp;date='
           + loiDates[start + 9].iso
@@ -343,6 +353,7 @@
     ]
   ]
 }) }}
+
 
 
 {{ govukPagination({

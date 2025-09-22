@@ -45,12 +45,12 @@
 }
 
 .highlighted-row {
-  background-color: #FFEE80;
+  background-color: #FFF8CC;
   transition: background-color 0.3s ease;
 }
 
 /* Permanent highlight for the active table row */
-tr.is-active-row > td { background-color: #FFEE80; }
+tr.is-active-row > td { background-color: #FFF8CC; }
 
 
 /* Penny's Home/Not home stuff */

@@ -54,7 +54,7 @@
     // Tag fitted label
     const fittedStr = form.dataset.tagFitted; // e.g. "2025-06-08"
     const tagFittedDate = fittedStr ? new Date(fittedStr) : null;
-    updateAllDatesLabel(latestDate, tagFittedDate);
+
 
     // Wire up
     $('#loi-filters').on('submit', applyFilters);
@@ -67,17 +67,6 @@
       return isNaN(d) ? null : d;
     }
 
-    function updateAllDatesLabel(latest, fitted) {
-      const opt = document.getElementById('all-dates-option');
-      if (!opt) return;
-      if (fitted instanceof Date && !isNaN(fitted)) {
-        const msDay = 24 * 60 * 60 * 1000;
-        const days = Math.max(0, Math.round((latest - fitted) / msDay));
-        opt.textContent = `All dates (since date fitted ${days} days)`;
-      } else {
-        opt.textContent = 'All dates';
-      }
-    }
 
     function applyFilters(ev) {
       if (ev) ev.preventDefault();
@@ -96,7 +85,7 @@
             // show everything EXCEPT exact 'home'
             if (r.type === 'home') match = false;
           } else {
-            // normal contains check (e.g. "Pub")
+            // normal contains check (e.g. "public house")
             if (!r.type.includes(typeFilterRaw)) match = false;
           }
         }

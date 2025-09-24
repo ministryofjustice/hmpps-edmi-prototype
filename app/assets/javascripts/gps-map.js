@@ -386,7 +386,7 @@ function areaPopupHTML(area, overrideDateText) {
     }
 
     if (scrollToMap) {
-      const heading = document.getElementById('map-header');
+      const heading = document.getElementById('map');
       if (heading) heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 

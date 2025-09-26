@@ -1,0 +1,56 @@
+{% extends "layouts/main.html" %}
+
+{% set navItems = [
+  { text: "Home", href: "index", active: false },
+  { text: "Cases", href: "cases", active: false },
+  { text: "Search", href: "#", active: false }
+] %}
+
+{% set pageName="Select location of interest" %}
+
+{% block content %}
+{% from "govuk/components/radios/macro.njk" import govukRadios %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+
+<div class="govuk-width-container">
+  <form method="post" action="/add-location2" novalidate>
+    {{ govukRadios({
+      name: "selectedAddress",
+      value: data.selectedAddress,
+      classes: "govuk-radios--small",
+      fieldset: {
+        legend: {
+          text: "Select location of interest",
+          isPageHeading: true,
+          classes: "govuk-fieldset__legend--l"
+        }
+      },
+      formGroup: {
+        beforeInputs: {
+          html: "<p class='govuk-body'>6 addresses found for <b>"
+                + (data.postcode or 'wr11nl')
+                + "</b> and <b>"
+                + (data.searchString or '1')
+                + "</b>. <a href='add-location1' class='govuk-link'>Search again</a></p>"
+        }
+      },
+      items: [
+        { value: "1 Washington Street, Worcester, WR1 1NL",  text: "1 Washington Street, Worcester, WR1 1NL" },
+        { value: "10 Washington Street, Worcester, WR1 1NL", text: "10 Washington Street, Worcester, WR1 1NL" },
+        { value: "11 Washington Street, Worcester, WR1 1NL", text: "11 Washington Street, Worcester, WR1 1NL" },
+        { value: "101 Washington Street, Worcester, WR1 1NL", text: "101 Washington Street, Worcester, WR1 1NL" },
+        { value: "110 Washington Street, Worcester, WR1 1NL", text: "110 Washington Street, Worcester, WR1 1NL" },
+        { value: "111 Washington Street, Worcester, WR1 1NL", text: "111 Washington Street, Worcester, WR1 1NL" }
+      ]
+    }) }}
+
+    {{ govukButton({
+      text: "Save this address",
+      type: "submit"
+    }) }}
+  </form>
+
+  <p class="govuk-body govuk-!-margin-bottom-10"><a href="add-manually" class="govuk-link">Enter address manually</a></p>
+  <p class="govuk-body govuk-!-margin-bottom-0"><a href="bh-manage-locations" class="govuk-link">Cancel and go back</a></p>
+</div>
+{% endblock %}

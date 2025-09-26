@@ -121,4 +121,39 @@ router.get('/design-history', function (req, res) {
   res.render('design-history');
 });
 
+// Step 1 -> Step 2
+router.post('/add-location1', function (req, res) {
+  // postcode/searchString saved automatically in req.session.data
+  return res.redirect('/add-location2');
+});
+
+// Step 2 -> Step 3
+router.post('/add-location2', function (req, res) {
+  // selectedAddress saved automatically in req.session.data.selectedAddress
+  if (!req.session.data.selectedAddress) {
+    // No selection? stay here (later you can add an error)
+    return res.redirect('/add-location2');
+  }
+  return res.redirect('/add-location3');
+});
+
+// Step 3 -> Manage (or Location tab if you prefer)
+router.post('/add-location3', function (req, res) {
+  // loiName saved in req.session.data.loiName
+  return res.redirect('/bh-manage-locations');
+});
+
+
+// Clear the current custom LOI (name + address) from session, then return to Manage Locations
+router.post('/loi/clear', function (req, res) {
+  req.session.data.selectedAddress = '';
+  req.session.data.loiName = '';
+  return res.redirect('/bh-manage-locations');
+});
+
+
+
+
+
+
 module.exports = router;

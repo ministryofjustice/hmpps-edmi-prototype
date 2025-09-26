@@ -30,18 +30,24 @@
     const statusEl = document.getElementById('loi-filter-status');
 
     // Cache rows
-    const rows = $tbody.find('tr').map(function () {
-      const $tr = $(this);
-      const $tds = $tr.find('td');
+ const rows = $tbody.find('tr').map(function () {
+  const $tr = $(this);
+  const $tds = $tr.find('td');
 
-      const $dateCell = $tds.eq(0);
-      const rawDate = $dateCell.find('[data-sort-value]').attr('data-sort-value') || $dateCell.text().trim();
-      const date = parseUkDate(rawDate);
+  // Date (unchanged)
+  const $dateCell = $tds.eq(0);
+  const rawDate = $dateCell.find('[data-sort-value]').attr('data-sort-value') || $dateCell.text().trim();
+  const date = parseUkDate(rawDate);
 
-      const type = ($tds.eq(1).text() || '').trim().toLowerCase();
+  // Location type: prefer machine-readable key from data attributes (e.g. data-loi-type="custom")
+  const $typeCell = $tds.eq(1);
+  const typeKey =
+    ($typeCell.attr('data-loi-type') || $typeCell.attr('data-sort-value') || $typeCell.text() || '')
+      .trim().toLowerCase();
 
-      return { $tr, date, type };
-    }).get();
+  return { $tr, date, typeKey };
+}).get();
+
 
     if (!rows.length) {
       console.warn('[loi-filters] no table rows found; aborting.');
@@ -79,16 +85,20 @@
       rows.forEach(r => {
         let match = true;
 
-        // Location type filtering (includes special "non-home")
-        if (typeFilterRaw) {
-          if (typeFilterRaw === 'non-home') {
-            // show everything EXCEPT exact 'home'
-            if (r.type === 'home') match = false;
-          } else {
-            // normal contains check (e.g. "public house")
-            if (!r.type.includes(typeFilterRaw)) match = false;
-          }
-        }
+// Location type filtering (includes special "non-home")
+if (typeFilterRaw) {
+  if (typeFilterRaw === 'non-home') {
+    // show everything EXCEPT exact 'home'
+    if (r.typeKey === 'home') match = false;
+  } else {
+    // Prefer exact key match first (so "custom" finds renamed rows),
+    // then fall back to contains to keep your loose matching behaviour.
+    if (!(r.typeKey === typeFilterRaw || r.typeKey.includes(typeFilterRaw))) {
+      match = false;
+    }
+  }
+}
+
 
         // Date range
         if (match && r.date instanceof Date && !isNaN(r.date)) {

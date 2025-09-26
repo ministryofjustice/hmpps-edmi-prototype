@@ -152,24 +152,31 @@
 
 <h3 class="govuk-heading-s" id="filter-by-loi">2. Or filter map by locations of interest</h3>
 <p class="govuk-body">Locations of interest are connected to a person on probation’s licence conditions.</p>
+<p class="govuk-body"><a href="bh-manage-locations" class="govuk-link">Manage locations of interest</a></p>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="loi-filters" class="loi-filters__form" novalidate data-tag-fitted="2025-06-08">
     <div class="loi-filters__row">
       <div class="loi-filters__group">
         <label class="govuk-label" for="filter-type">Location</label>
-        <select class="govuk-select" id="filter-type" name="filter-type">
-          <option value="" selected>All location types</option>
-          <option value="anywhere outside the uk">Anywhere outside the UK</option>
-          <option value="approved premises">Approved premises</option>
-          <option value="Betting shops">Betting shops</option>
-          <option value="places of worship">Places of worship</option>
-          <option value="police stations">Police stations</option>
-          <option value="probation offices">Probation offices</option>
-          <option value="Pubs">Pubs</option>
-          <option value="schools">Schools</option>
-          <option value="swimming pools">Swimming pools</option>
-        </select>
+<select class="govuk-select" id="filter-type" name="filter-type">
+  <option value="" selected>All location types</option>
+  <option value="anywhere outside the uk">Anywhere outside the UK</option>
+  <option value="approved premises">Approved premises</option>
+  <option value="betting shops">Betting shops</option>
+
+  {% if data.selectedAddress and (data.selectedAddress | length) %}
+    <option value="custom">Custom</option>
+  {% endif %}
+
+  <option value="places of worship">Places of worship</option>
+  <option value="police stations">Police stations</option>
+  <option value="probation offices">Probation offices</option>
+  <option value="pubs">Pubs</option>
+  <option value="schools">Schools</option>
+  <option value="swimming pools">Swimming pools</option>
+</select>
+
       </div>
 
       <div class="loi-filters__group">
@@ -198,6 +205,177 @@
 
 {% set start = startIndex or 0 %}
 
+{# 1) Build the base rows (unchanged existing rows) #}
+{% set rows = [
+  [
+    {
+      text: loiDates[start + 0].text,
+      html: (loiDates[start + 0].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=kings-arms-1&amp;date='
+        + loiDates[start + 0].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 0].iso }
+    },
+    { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
+    { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
+    { html: "2:19pm to 7:59pm<br/>(5 hours 40 mins)", attributes: { "data-sort-value": "340" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-1">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 1].text,
+      html: (loiDates[start + 1].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=school&amp;date='
+        + loiDates[start + 1].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 1].iso }
+    },
+    { text: "Schools", attributes: { "data-sort-value": "schools" } },
+    { html: "Colchester County High School for Girls<br/>Norman Way<br/>Colchester<br/>CO3 3US" },
+    { html: "1:33pm to 2:04pm<br/>(31 mins)", attributes: { "data-sort-value": "31" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="school">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 2].text,
+      html: (loiDates[start + 2].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-1&amp;date='
+        + loiDates[start + 2].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 2].iso }
+    },
+    { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { html: "11:12am to 1:27pm<br/>(2 hours 15 mins)", attributes: { "data-sort-value": "135" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 3].text,
+      html: (loiDates[start + 3].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=probation-office&amp;date='
+        + loiDates[start + 3].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 3].iso }
+    },
+    { text: "Probation offices", attributes: { "data-sort-value": "probation offices" } },
+    { html: "Colchester Probation Service<br/>Portal House<br/>27 Southway<br/>Colchester<br/>CO2 7BA" },
+    { html: "9:03am to 9:33am<br/>(30 mins)", attributes: { "data-sort-value": "30" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="probation-office">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 4].text,
+      html: (loiDates[start + 4].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=swimming-pool&amp;date='
+        + loiDates[start + 4].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 4].iso }
+    },
+    { text: "Swimming pools", attributes: { "data-sort-value": "swimming pools" } },
+    { html: "Leisure World Colchester<br/>Cowdray Ave<br/>Colchester<br/>CO1 1YH" },
+    { html: "11:05am to 12:26pm<br/>(1 hour 21 mins)", attributes: { "data-sort-value": "81" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="swimming-pool">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 5].text,
+      html: (loiDates[start + 5].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=police-station&amp;date='
+        + loiDates[start + 5].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 5].iso }
+    },
+    { text: "Police stations", attributes: { "data-sort-value": "police stations" } },
+    { html: "Essex Police<br/>Colchester<br/>CO3 3BU" },
+    { html: "10:01am to 10:17am<br/>(16 mins)", attributes: { "data-sort-value": "16" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="police-station">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 6].text,
+      html: (loiDates[start + 6].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=kings-arms-2&amp;date='
+        + loiDates[start + 6].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 6].iso }
+    },
+    { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
+    { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
+    { html: "11:38pm to 11:59pm<br/>(21 mins)", attributes: { "data-sort-value": "21" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 7].text,
+      html: (loiDates[start + 7].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-2&amp;date='
+        + loiDates[start + 7].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 7].iso }
+    },
+    { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { html: "7:32pm to 11:05pm<br/>(3 hours 33 mins)", attributes: { "data-sort-value": "213" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-2">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 8].text,
+      html: (loiDates[start + 8].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=ladbrokes&amp;date='
+        + loiDates[start + 8].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 8].iso }
+    },
+    { text: "Betting shops", attributes: { "data-sort-value": "Betting shops" } },
+    { html: "Ladbrokes<br/>41, 42 St Botolph&#39;s St<br/>Colchester<br/>CO2 7EA" },
+    { html: "1:34pm to 2:13pm<br/>(39 mins)", attributes: { "data-sort-value": "39" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="ladbrokes">View</a>' }
+  ],
+  [
+    {
+      text: loiDates[start + 9].text,
+      html: (loiDates[start + 9].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-3&amp;date='
+        + loiDates[start + 9].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 9].iso }
+    },
+    { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { html: "9:45pm to 11:59pm<br/>(2 hours 14 mins)", attributes: { "data-sort-value": "134" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-3">View</a>' }
+  ]
+] %}
+
+{# 2) Optionally append the Custom row if user added an address #}
+{% if data.selectedAddress and (data.selectedAddress | length) %}
+  {% if data.loiName and (data.loiName | length) %}
+    {% set customType = data.loiName %}
+  {% else %}
+    {% set customType = "Custom" %}
+  {% endif %}
+
+  {% set customRow = [
+    {
+      text: loiDates[start + 5].text,
+      html: (loiDates[start + 5].html | safe)
+        + '<br><a class="govuk-link" href="ndelius-record?trace=custom-1&amp;date='
+        + loiDates[start + 5].iso
+        + '">Send to NDelius</a>',
+      attributes: { "data-sort-value": loiDates[start + 5].iso }
+    },
+    { text: customType, attributes: { "data-sort-value": "custom", "data-loi-type": "custom" } },
+    { html: (data.selectedAddress | replace(", ", "<br/>")) },
+    { html: "1:55pm to 7:59pm<br/>(6 hours 4 mins)", attributes: { "data-sort-value": "364" } },
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="custom-1">View</a>' }
+  ] %}
+
+  {% set rows = rows.concat([customRow]) %}
+{% endif %}
+
+{# 3) Render the table with the computed rows #}
 {{ govukTable({
   attributes: { id: "bh-loi-table", "data-module": "moj-sortable-table" },
   head: [
@@ -207,149 +385,10 @@
     { text: "Time", attributes: { "aria-sort": "none" }, classes: "no-wrap" },
     { text: "View on map" }
   ],
-  rows: [
-    [
-      {
-        text: loiDates[start + 0].text,
-        html: (loiDates[start + 0].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=kings-arms-1&amp;date='
-          + loiDates[start + 0].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 0].iso }
-      },
-      { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
-      { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
-      { html: "2:19pm to 7:59pm<br/>(5 hours 40 mins)", attributes: { "data-sort-value": "340" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-1">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 1].text,
-        html: (loiDates[start + 1].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=school&amp;date='
-          + loiDates[start + 1].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 1].iso }
-      },
-      { text: "Schools", attributes: { "data-sort-value": "schools" } },
-      { html: "Colchester County High School for Girls<br/>Norman Way<br/>Colchester<br/>CO3 3US" },
-      { html: "1:33pm to 2:04pm<br/>(31 mins)", attributes: { "data-sort-value": "31" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="school">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 2].text,
-        html: (loiDates[start + 2].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-1&amp;date='
-          + loiDates[start + 2].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 2].iso }
-      },
-      { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
-      { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-      { html: "11:12am to 1:27pm<br/>(2 hours 15 mins)", attributes: { "data-sort-value": "135" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 3].text,
-        html: (loiDates[start + 3].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=probation-office&amp;date='
-          + loiDates[start + 3].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 3].iso }
-      },
-      { text: "Probation offices", attributes: { "data-sort-value": "probation offices" } },
-      { html: "Colchester Probation Service<br/>Portal House<br/>27 Southway<br/>Colchester<br/>CO2 7BA" },
-      { html: "9:03am to 9:33am<br/>(30 mins)", attributes: { "data-sort-value": "30" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="probation-office">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 4].text,
-        html: (loiDates[start + 4].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=swimming-pool&amp;date='
-          + loiDates[start + 4].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 4].iso }
-      },
-      { text: "Swimming pools", attributes: { "data-sort-value": "swimming pools" } },
-      { html: "Leisure World Colchester<br/>Cowdray Ave<br/>Colchester<br/>CO1 1YH" },
-      { html: "11:05am to 12:26pm<br/>(1 hour 21 mins)", attributes: { "data-sort-value": "81" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="swimming-pool">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 5].text,
-        html: (loiDates[start + 5].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=police-station&amp;date='
-          + loiDates[start + 5].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 5].iso }
-      },
-      { text: "Police stations", attributes: { "data-sort-value": "police stations" } },
-      { html: "Essex Police<br/>Colchester<br/>CO3 3BU" },
-      { html: "10:01am to 10:17am<br/>(16 mins)", attributes: { "data-sort-value": "16" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="police-station">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 6].text,
-        html: (loiDates[start + 6].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=kings-arms-2&amp;date='
-          + loiDates[start + 6].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 6].iso }
-      },
-      { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
-      { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
-      { html: "11:38pm to 11:59pm<br/>(21 mins)", attributes: { "data-sort-value": "21" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 7].text,
-        html: (loiDates[start + 7].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-2&amp;date='
-          + loiDates[start + 7].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 7].iso }
-      },
-      { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
-      { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-      { html: "7:32pm to 11:05pm<br/>(3 hours 33 mins)", attributes: { "data-sort-value": "213" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-2">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 8].text,
-        html: (loiDates[start + 8].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=ladbrokes&amp;date='
-          + loiDates[start + 8].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 8].iso }
-      },
-      { text: "Betting shops", attributes: { "data-sort-value": "Betting shops" } },
-      { html: "Ladbrokes<br/>41, 42 St Botolph&#39;s St<br/>Colchester<br/>CO2 7EA" },
-      { html: "1:34pm to 2:13pm<br/>(39 mins)", attributes: { "data-sort-value": "39" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="ladbrokes">View</a>' }
-    ],
-    [
-      {
-        text: loiDates[start + 9].text,
-        html: (loiDates[start + 9].html | safe)
-          + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-3&amp;date='
-          + loiDates[start + 9].iso
-          + '">Send to NDelius</a>',
-        attributes: { "data-sort-value": loiDates[start + 9].iso }
-      },
-      { text: "Pubs", attributes: { "data-sort-value": "Pubs" } },
-      { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-      { html: "9:45pm to 11:59pm<br/>(2 hours 14 mins)", attributes: { "data-sort-value": "134" } },
-      { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-3">View</a>' }
-    ]
-  ]
+  rows: rows
 }) }}
+
+
 
 
 

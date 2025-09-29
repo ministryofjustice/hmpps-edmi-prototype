@@ -337,5 +337,48 @@
         ]
       }
     ]
-  }
+  },
+
+"finch-road": {
+  "meta": { "description": "Finch Road", "point_count": 24 },
+  "points": [
+    { "lat": 51.882137, "lng": 0.830331, "label": "1",  "accuracy": 12, "time": "13:55" },
+    { "lat": 51.882174, "lng": 0.830251, "label": "2",  "accuracy": 7,  "time": "14:10" },
+    { "lat": 51.882094, "lng": 0.830289, "label": "3",  "accuracy": 19, "time": "14:26" },
+    { "lat": 51.882088, "lng": 0.830058, "label": "4",  "accuracy": 3,  "time": "14:45" },
+    { "lat": 51.881972, "lng": 0.829355, "label": "5",  "accuracy": 16, "time": "15:05" },
+    { "lat": 51.882296, "lng": 0.829580, "label": "6",  "accuracy": 8,  "time": "15:27" },
+    { "lat": 51.882495, "lng": 0.829151, "label": "7",  "accuracy": 14, "time": "15:49" },
+    { "lat": 51.882604, "lng": 0.828776, "label": "8",  "accuracy": 5,  "time": "16:12" },
+    { "lat": 51.882346, "lng": 0.828674, "label": "9",  "accuracy": 20, "time": "16:35" },
+    { "lat": 51.882373, "lng": 0.828411, "label": "10", "accuracy": 9,  "time": "16:58" },
+    { "lat": 51.882240, "lng": 0.827848, "label": "11", "accuracy": 2,  "time": "17:22" },
+    { "lat": 51.882326, "lng": 0.827794, "label": "12", "accuracy": 11, "time": "17:58" },
+    { "lat": 51.882376, "lng": 0.827885, "label": "13", "accuracy": 10, "time": "17:59" },
+    { "lat": 51.882432, "lng": 0.827869, "label": "14", "accuracy": 18, "time": "18:10" },
+    { "lat": 51.882416, "lng": 0.827773, "label": "15", "accuracy": 6,  "time": "18:18" },
+    { "lat": 51.882379, "lng": 0.827858, "label": "16", "accuracy": 13, "time": "18:27" },
+    { "lat": 51.882353, "lng": 0.827934, "label": "17", "accuracy": 4,  "time": "18:36" },
+    { "lat": 51.882442, "lng": 0.828003, "label": "18", "accuracy": 17, "time": "18:45" },
+    { "lat": 51.882485, "lng": 0.827869, "label": "19", "accuracy": 15, "time": "18:55" },
+    { "lat": 51.882383, "lng": 0.827767, "label": "20", "accuracy": 1,  "time": "19:05" },
+    { "lat": 51.882316, "lng": 0.827767, "label": "21", "accuracy": 7,  "time": "19:16" },
+    { "lat": 51.882267, "lng": 0.827805, "label": "22", "accuracy": 19, "time": "19:28" },
+    { "lat": 51.882247, "lng": 0.827939, "label": "23", "accuracy": 12, "time": "19:41" },
+    { "lat": 51.882247, "lng": 0.827939, "label": "24", "accuracy": 8,  "time": "19:59" }
+  ],
+  "areas": [
+    {
+      "label": "10 Finch Road, Stanway, Colchester, CO3 8DF",
+      "type": "Custom",
+      "timeanddate": "Friday 19 September 2025, 1:55pm to 7:59pm",
+      "coordinates": [
+        { "lat": 51.882328, "lng": 0.827781 },
+        { "lat": 51.882396, "lng": 0.827754 },
+        { "lat": 51.882409, "lng": 0.827885 },
+        { "lat": 51.882341, "lng": 0.827917 }
+      ]
+    }
+  ]
+}
 }

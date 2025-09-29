@@ -151,9 +151,20 @@ router.post('/loi/clear', function (req, res) {
   return res.redirect('/bh-manage-locations');
 });
 
+// NEW: allow GET for the prototype so the link works inside the main form
+router.get('/loi/clear', function (req, res) {
+  req.session.data.selectedAddress = '';
+  req.session.data.loiName = '';
+  return res.redirect('/bh-manage-locations');
+});
 
-
-
+// Manage Locations form submission
+router.post('/bh-manage-locations', function (req, res) {
+  const v = req.session.data.loiTypes;
+  if (typeof v === 'string') req.session.data.loiTypes = [v];
+  if (!v) req.session.data.loiTypes = [];
+  return res.redirect('/bh-location');
+});
 
 
 module.exports = router;

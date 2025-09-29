@@ -159,23 +159,35 @@
     <div class="loi-filters__row">
       <div class="loi-filters__group">
         <label class="govuk-label" for="filter-type">Location</label>
+
+{% set allTypes = [
+  { value: "anywhere outside the uk", label: "Anywhere outside the UK" },
+  { value: "approved premises",       label: "Approved premises" },
+  { value: "betting shops",           label: "Betting shops" },
+  { value: "places of worship",       label: "Places of worship" },
+  { value: "police stations",         label: "Police stations" },
+  { value: "probation offices",       label: "Probation offices" },
+  { value: "pubs",                    label: "Pubs" },
+  { value: "schools",                 label: "Schools" },
+  { value: "swimming pools",          label: "Swimming pools" }
+] %}
+
 <select class="govuk-select" id="filter-type" name="filter-type">
   <option value="" selected>All location types</option>
-  <option value="anywhere outside the uk">Anywhere outside the UK</option>
-  <option value="approved premises">Approved premises</option>
-  <option value="betting shops">Betting shops</option>
 
+  {# If user has saved a list, only show those; otherwise show all #}
+  {% for t in allTypes %}
+    {% if not (data.loiTypes and (data.loiTypes | length)) or (t.value in data.loiTypes) %}
+      <option value="{{ t.value }}">{{ t.label }}</option>
+    {% endif %}
+  {% endfor %}
+
+  {# Add Custom if a custom address exists #}
   {% if data.selectedAddress and (data.selectedAddress | length) %}
     <option value="custom">Custom</option>
   {% endif %}
-
-  <option value="places of worship">Places of worship</option>
-  <option value="police stations">Police stations</option>
-  <option value="probation offices">Probation offices</option>
-  <option value="pubs">Pubs</option>
-  <option value="schools">Schools</option>
-  <option value="swimming pools">Swimming pools</option>
 </select>
+
 
       </div>
 
@@ -361,7 +373,7 @@
     {
       text: loiDates[start + 5].text,
       html: (loiDates[start + 5].html | safe)
-        + '<br><a class="govuk-link" href="ndelius-record?trace=custom-1&amp;date='
+        + '<br><a class="govuk-link" href="ndelius-record?trace=finch-road&amp;date='
         + loiDates[start + 5].iso
         + '">Send to NDelius</a>',
       attributes: { "data-sort-value": loiDates[start + 5].iso }
@@ -369,7 +381,7 @@
     { text: customType, attributes: { "data-sort-value": "custom", "data-loi-type": "custom" } },
     { html: (data.selectedAddress | replace(", ", "<br/>")) },
     { html: "1:55pm to 7:59pm<br/>(6 hours 4 mins)", attributes: { "data-sort-value": "364" } },
-    { html: '<a href="#" class="plot-link govuk-link" data-trace="custom-1">View</a>' }
+    { html: '<a href="#" class="plot-link govuk-link" data-trace="finch-road">View</a>' }
   ] %}
 
   {% set rows = rows.concat([customRow]) %}
@@ -387,9 +399,6 @@
   ],
   rows: rows
 }) }}
-
-
-
 
 
 {{ govukPagination({

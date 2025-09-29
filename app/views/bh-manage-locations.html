@@ -21,153 +21,111 @@
 
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-full">
-          <span class="govuk-caption-m govuk-!-margin-bottom-2">
-        <abbr title="Case reference number" style="text-decoration: none">CRN</abbr>: Y123456 
-        <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
-        Date of birth: 18 Nov 1995 (Age 29)
-        <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
-        <a href="https://www.figma.com/proto/vlCrUVrP6fuq59QzUg9lyy/GPS-Alpha-2.0?page-id=6722%3A15258&node-id=6936-6250&p=f&viewport=-4249%2C-4220%2C0.21&t=gk748NC1vQvFiqZc-8&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=6722%3A16450&hide-ui=1" style="color:#505a5f; text-decoration: none;">Sentence: CJA - Community Order</a>
-      </span>
-    <h1 class="govuk-heading-l govuk-!-margin-bottom-4">
-      Billy Hoskins
-    </h1>
+    <span class="govuk-caption-m govuk-!-margin-bottom-2">
+      <abbr title="Case reference number" style="text-decoration: none">CRN</abbr>: Y123456
+      <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
+      Date of birth: 18 Nov 1995 (Age 29)
+      <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
+      <a href="https://www.figma.com/proto/vlCrUVrP6fuq59QzUg9lyy/GPS-Alpha-2.0?page-id=6722%3A15258&node-id=6936-6250&p=f&viewport=-4249%2C-4220%2C0.21&t=gk748NC1vQvFiqZc-8&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=6722%3A16450&hide-ui=1" style="color:#505a5f; text-decoration: none;">Sentence: CJA - Community Order</a>
+    </span>
+    <h1 class="govuk-heading-l govuk-!-margin-bottom-4">Billy Hoskins</h1>
 
-{{ mojSubNavigation({
-  label: "Sub navigation",
-  items: [{
-    text: "Overview",
-    href: "billy-hoskins"
-  }, {
-    text: "Location activity",
-    href: "bh-location",
-    active: false
-  }, {
-    text: "Case notes",
-    href: "bh-case-notes-ems"
-  }]
-}) }}
-
+    {{ mojSubNavigation({
+      label: "Sub navigation",
+      items: [{
+        text: "Overview",
+        href: "billy-hoskins"
+      }, {
+        text: "Location activity",
+        href: "bh-location"
+      }, {
+        text: "Case notes",
+        href: "bh-case-notes-ems"
+      }]
+    }) }}
   </div>
-  
+
   <div class="govuk-grid-column-full">
 
-  {{ govukCheckboxes({
-    name: "waste",
-    fieldset: {
-      legend: {
-        text: "Manage locations of interest",
-        isPageHeading: true,
-        classes: "govuk-fieldset__legend--m"
-      }
-    },
-    hint: {
-      text: "Show the following locations of interest on the location activity tab"
-    },
-    items: [
-      {
-        value: "approved-premises",
-        text: "Approved premises",
-        checked: true
-      },
-      {
-        value: "betting-shops",
-        text: "Betting shops",
-        checked: true
-      },
-      {
-        value: "places-of-worship",
-        text: "Places of worship",
-        checked: true
-      },
-      {
-        value: "police-stations",
-        text: "Police stations",
-        checked: true
-      },
-      {
-        value: "probation-offices",
-        text: "Probation offices",
-        checked: true
-      },
-      {
-        value: "pubs",
-        text: "Pubs",
-        checked: true
-      },
-      {
-        value: "schools",
-        text: "Schools",
-        checked: true
-      },
-      {
-        value: "swimming-pools",
-        text: "Swimming pools",
-        checked: true
-      }
-    ]
-  }) }}
+    {# ONE FORM WRAPS EVERYTHING #}
+    <form method="post" action="/bh-manage-locations" novalidate>
 
-    {{ govukCheckboxes({
-    name: "waste",
-    fieldset: {
-      legend: {
-        text: "Outside the UK",
-        isPageHeading: false,
-        classes: "govuk-fieldset__legend--s"
-      }
-    },
-    hint: {
-      text: "Standard licence conditions require the person on probation to remain in the country. Only deselect this option if it makes understanding your data easier."
-    },
-    items: [
-      {
-        value: "outside-uk",
-        text: "Anywhere outside the UK",
-        checked: true
-      }
-    ]
-  }) }}
+      {# --- Section 1: Which LOI categories to show --- #}
+      {{ govukCheckboxes({
+        name: "loiTypes",
+        fieldset: {
+          legend: {
+            text: "Manage locations of interest",
+            isPageHeading: true,
+            classes: "govuk-fieldset__legend--m"
+          }
+        },
+        hint: { text: "Show the following locations of interest on the location activity tab" },
+        items: [
+          { value: "approved premises",  text: "Approved premises",  checked: data.loiTypes and ("approved premises" in data.loiTypes) },
+          { value: "betting shops",     text: "Betting shops",      checked: data.loiTypes and ("betting shops" in data.loiTypes) },
+          { value: "places of worship", text: "Places of worship",  checked: data.loiTypes and ("places of worship" in data.loiTypes) },
+          { value: "police stations",   text: "Police stations",    checked: data.loiTypes and ("police stations" in data.loiTypes) },
+          { value: "probation offices", text: "Probation offices",  checked: data.loiTypes and ("probation offices" in data.loiTypes) },
+          { value: "pubs",              text: "Pubs",               checked: data.loiTypes and ("pubs" in data.loiTypes) },
+          { value: "schools",           text: "Schools",            checked: data.loiTypes and ("schools" in data.loiTypes) },
+          { value: "swimming pools",    text: "Swimming pools",     checked: data.loiTypes and ("swimming pools" in data.loiTypes) }
+        ]
+      }) }}
 
-  <h3 class="govuk-heading-s govuk-!-margin-bottom-2">Your locations of interest</h3>
-  <p class="govuk-body govuk-!-margin-top-2">You can add your own locations of interest, Search by postcode or enter the address for a location of interest manually.</p>
+      {# --- Section 2: Outside the UK (kept as a single checkbox) --- #}
+      {{ govukCheckboxes({
+        name: "outsideUk",
+        fieldset: {
+          legend: {
+            text: "Outside the UK",
+            isPageHeading: false,
+            classes: "govuk-fieldset__legend--s"
+          }
+        },
+        hint: {
+          text: "Standard licence conditions require the person on probation to remain in the country. Only deselect this option if it makes understanding your data easier."
+        },
+        items: [
+          {
+            value: "anywhere",
+            text: "Anywhere outside the UK",
+            checked: (data.outsideUk and ("anywhere" in data.outsideUk)) or (not data.outsideUk)
+          }
+        ]
+      }) }}
 
+      {# --- Section 3: Custom LOIs --- #}
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-2">Your locations of interest</h3>
+      <p class="govuk-body govuk-!-margin-top-2">
+        You can add your own locations of interest. Search by postcode or enter the address for a location of interest manually.
+      </p>
 
-{% if data.selectedAddress %}
-  {% set _inset = "" %}
+      {% if data.selectedAddress %}
+        {% set _inset = "" %}
+        {% if data.loiName and (data.loiName | length) %}
+          {% set _inset = _inset ~ "<strong>" ~ (data.loiName | escape) ~ "</strong><br>" %}
+        {% endif %}
+        {% set _inset = _inset ~ (data.selectedAddress | replace(", ", "<br>")) %}
 
-  {% if data.loiName and (data.loiName | length) %}
-    {% set _inset = _inset ~ "<strong>" ~ (data.loiName | escape) ~ "</strong><br>" %}
-  {% endif %}
+        {# Delete: use a link so we don't nest a form inside this form #}
+        {% set _inset = _inset ~ "<p class='govuk-!-margin-top-4'><a href='/loi/clear' class='govuk-link'>Delete</a></p>" %}
 
-  {% set _inset = _inset ~ (data.selectedAddress | replace(", ", "<br>")) %}
+        <div id="loi-inset">
+          {{ govukInsetText({ html: _inset }) }}
+        </div>
+      {% endif %}
 
-  {# Add Delete link inside inset, with spacing #}
-{% set _inset = _inset ~ "
-  <form method='post' action='/loi/clear' class='govuk-!-margin-top-4'>
-    <button type='submit' class='govuk-link'>Delete</button>
-  </form>
-" %}
+      <p class="govuk-body" style="margin-bottom: 60px;">
+        <a href="add-location1" class="govuk-link">Add new location of interest</a>
+      </p>
 
+      <div class="govuk-button-group">
+        {{ govukButton({ text: "Save changes", type: "submit" }) }}
+        <a class="govuk-link" href="bh-location">Cancel and go back</a>
+      </div>
 
-  <div id="loi-inset">
-    {{ govukInsetText({ html: _inset }) }}
-  </div>
-{% endif %}
-
-<p class="govuk-body" style="margin-bottom: 60px;"><a href="add-location1" class="govuk-link">Add new location of interest</a></p>
-
-
-
-<div class="govuk-button-group">
-  {{ govukButton({
-    text: "Save changes",
-    href: "bh-location"
-  }) }}
-
-  <a class="govuk-link" href="bh-location">Cancel and go back</a>
-</div>
-  
-</div> <!-- /govuk-grid-column-full -->
-
-
+    </form>
+  </div> <!-- /govuk-grid-column-full -->
+</div> <!-- /govuk-grid-row -->
 {% endblock %}

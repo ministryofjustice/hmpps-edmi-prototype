@@ -1,6 +1,6 @@
 {
   "kings-arms-1": {
-    "meta": { "description": "Kings Arms session 1", "point_count": 12 },
+    "meta": { "description": "Kings Arms session 1", "point_count": 12, "densify": { "count": 200 } },
     "points": [
   { "lat": 51.887588, "lng": 0.887114, "label": "1", "accuracy": 18, "time": "14:00" },
   { "lat": 51.887601, "lng": 0.888283, "label": "2", "accuracy": 20, "time": "14:15" },
@@ -31,7 +31,7 @@
   },
 
   "school": {
-    "meta": { "description": "Colchester County High School for Girls visit", "point_count": 5 },
+    "meta": { "description": "Colchester County High School for Girls visit", "point_count": 5, "densify": { "count": 200 } },
     "points": [
   { "lat": 51.890088, "lng": 0.868703, "label": "1",  "accuracy": 12, "time": "13:33" },
   { "lat": 51.888473, "lng": 0.875956, "label": "2",  "accuracy": 9,  "time": "13:36" },
@@ -74,7 +74,7 @@
   },
 
   "fusilier-1": {
-    "meta": { "description": "The Fusilier lunchtime", "point_count": 10 },
+    "meta": { "description": "The Fusilier lunchtime", "point_count": 10, "densify": { "count": 200 } },
     "points": [
       { "lat": 51.843963254686, "lng": 1.0745224219947962, "label": "1", "accuracy": 15, "time": "11:12" },
       { "lat": 51.84354566790743, "lng": 1.0743561250346882, "label": "2", "accuracy": 17, "time": "11:28" },
@@ -103,7 +103,7 @@
   },
 
   "probation-office": {
-    "meta": { "description": "Colchester Probation Service – Portal House visit", "point_count": 12 },
+    "meta": { "description": "Colchester Probation Service – Portal House visit", "point_count": 12, "densify": { "count": 200 } },
     "points": [
   { "lat": 51.889045, "lng": 0.896271, "label": "1",  "accuracy": 12, "time": "10:00" },
   { "lat": 51.888416, "lng": 0.896721, "label": "2",  "accuracy": 18, "time": "10:05" },
@@ -188,7 +188,7 @@
   },
 
   "police-station": {
-    "meta": { "description": "Essex Police, brief visit", "point_count": 4 },
+    "meta": { "description": "Essex Police, brief visit", "point_count": 4, "densify": { "count": 200 } },
     "points": [
   { "lat": 51.887503, "lng": 0.890459, "label": "1",  "accuracy": 14, "time": "10:01" },
   { "lat": 51.887321, "lng": 0.891821, "label": "2",  "accuracy": 16, "time": "10:06" },
@@ -226,7 +226,7 @@
   },
 
   "kings-arms-2": {
-    "meta": { "description": "Kings Arms session 1", "point_count": 12 },
+    "meta": { "description": "Kings Arms session 1", "point_count": 12, "densify": { "count": 200 } },
     "points": [
   { "lat": 51.887588, "lng": 0.887114, "label": "1", "accuracy": 18, "time": "14:00" },
   { "lat": 51.887601, "lng": 0.888283, "label": "2", "accuracy": 20, "time": "14:15" },
@@ -257,7 +257,7 @@
   },
 
   "fusilier-2": {
-    "meta": { "description": "The Fusilier evening session", "point_count": 8 },
+    "meta": { "description": "The Fusilier evening session", "point_count": 8, "densify": { "count": 200 } },
     "points": [
       { "lat": 51.843963254686, "lng": 1.0745224219947962, "label": "1", "accuracy": 16, "time": "19:32" },
       { "lat": 51.84354566790743, "lng": 1.0743561250346882, "label": "2", "accuracy": 17, "time": "20:05" },
@@ -284,7 +284,7 @@
   },
 
   "ladbrokes": {
-    "meta": { "description": "Ladbrokes short visit", "point_count": 10 },
+    "meta": { "description": "Ladbrokes short visit", "point_count": 10, "densify": { "count": 200 } },
     "points": [
       { "lat": 51.889655854586614, "lng": 0.9042225090724204, "label": "1", "accuracy": 20, "time": "13:34" },
       { "lat": 51.88857092374142, "lng": 0.9037479513627124, "label": "2", "accuracy": 16, "time": "13:36" },
@@ -313,7 +313,7 @@
   },
 
   "fusilier-3": {
-    "meta": { "description": "The Fusilier late evening", "point_count": 6 },
+    "meta": { "description": "The Fusilier late evening", "point_count": 6, "densify": { "count": 200 } },
     "points": [
       { "lat": 51.843963254686, "lng": 1.0745224219947962, "label": "1", "accuracy": 16, "time": "21:45" },
       { "lat": 51.84354566790743, "lng": 1.0743561250346882, "label": "2", "accuracy": 17, "time": "22:10" },
@@ -338,7 +338,7 @@
   },
 
 "finch-road": {
-  "meta": { "description": "Finch Road", "point_count": 24 },
+  "meta": { "description": "Finch Road", "point_count": 24, "densify": { "count": 200 } },
   "points": [
     { "lat": 51.882137, "lng": 0.830331, "label": "1",  "accuracy": 12, "time": "13:55" },
     { "lat": 51.882174, "lng": 0.830251, "label": "2",  "accuracy": 7,  "time": "14:10" },

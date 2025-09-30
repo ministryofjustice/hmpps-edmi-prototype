@@ -576,6 +576,15 @@
   document.addEventListener('DOMContentLoaded', function () {
     if (!window.map) return;
 
+    // Give LOI areas their own pane above lines/circles but under tooltips/popups
+if (!window.map.getPane('loi-areas')) {
+  const pane = window.map.createPane('loi-areas');
+  // Leaflet default z-indexes: overlayPane=400, markerPane=600, tooltip=650, popup=700
+  // Put polygons above lines/circles (400) but just under tooltips (650)
+  pane.style.zIndex = 645;
+}
+
+
     // North arrow
     (function addNorthArrow() {
       const compass = L.control({ position: 'topleft' });

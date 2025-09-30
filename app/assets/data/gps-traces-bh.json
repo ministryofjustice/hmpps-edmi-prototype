@@ -141,7 +141,7 @@
   },
 
   "swimming-pool": {
-    "meta": { "description": "Leisure World Colchester session", "point_count": 21 },
+    "meta": { "description": "Leisure World Colchester session", "point_count": 21, "densify": { "count": 200 } },
     "points": [
   { "lat": 51.896921, "lng": 0.895547, "label": "1",  "accuracy": 14, "time": "11:05" },
   { "lat": 51.897477, "lng": 0.897843, "label": "2",  "accuracy": 12, "time": "11:09" },
@@ -151,7 +151,6 @@
   { "lat": 51.896948, "lng": 0.906284, "label": "6",  "accuracy": 11, "time": "11:25" },
   { "lat": 51.896700, "lng": 0.907249, "label": "7",  "accuracy": 20, "time": "11:29" },
   { "lat": 51.896667, "lng": 0.906595, "label": "8",  "accuracy": 9,  "time": "11:33" },
-
   { "lat": 51.896880, "lng": 0.905400, "label": "9",  "accuracy": 28, "time": "11:37" },
   { "lat": 51.896950, "lng": 0.905720, "label": "10", "accuracy": 32, "time": "11:41" },
   { "lat": 51.896700, "lng": 0.905950, "label": "11", "accuracy": 35, "time": "11:45" },
@@ -159,7 +158,6 @@
   { "lat": 51.897100, "lng": 0.905300, "label": "13", "accuracy": 40, "time": "11:53" },
   { "lat": 51.896850, "lng": 0.905100, "label": "14", "accuracy": 27, "time": "11:57" },
   { "lat": 51.896740, "lng": 0.905680, "label": "15", "accuracy": 33, "time": "12:01" },
-
   { "lat": 51.896713, "lng": 0.906396, "label": "16", "accuracy": 8,  "time": "12:05" },
   { "lat": 51.896692, "lng": 0.906989, "label": "17", "accuracy": 16, "time": "12:09" },
   { "lat": 51.896931, "lng": 0.906335, "label": "18", "accuracy": 11, "time": "12:13" },

@@ -87,6 +87,98 @@
     return json;
   }
 
+  // --- Densify helpers (paste once) -------------------------------------------
+
+// Ray-casting: point inside polygon?
+function pointInPolygon(point, vs) {
+  const x = point[1], y = point[0];
+  let inside = false;
+  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    const xi = vs[i][1], yi = vs[i][0];
+    const xj = vs[j][1], yj = vs[j][0];
+    const intersect = ((yi > y) !== (yj > y)) &&
+      (x < ((xj - xi) * (y - yi)) / (yj - yi + 0.0000001) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// Random point inside polygon by rejection sampling within its bbox
+function randomPointInPolygon(polyLatLngs) {
+  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+  polyLatLngs.forEach(p => {
+    if (p.lat < minLat) minLat = p.lat;
+    if (p.lat > maxLat) maxLat = p.lat;
+    if (p.lng < minLng) minLng = p.lng;
+    if (p.lng > maxLng) maxLng = p.lng;
+  });
+  // try up to N times (polygon is small; this is fine)
+  for (let i = 0; i < 2000; i++) {
+    const lat = minLat + Math.random() * (maxLat - minLat);
+    const lng = minLng + Math.random() * (maxLng - minLng);
+    if (pointInPolygon([lat, lng], polyLatLngs.map(p => [p.lat, p.lng]))) {
+      return { lat, lng };
+    }
+  }
+  // fallback to centroid if something odd happens
+  const c = polyLatLngs.reduce((a, p) => ({ lat: a.lat + p.lat, lng: a.lng + p.lng }), { lat: 0, lng: 0 });
+  return { lat: c.lat / polyLatLngs.length, lng: c.lng / polyLatLngs.length };
+}
+
+// Make HH:MM minutes between a start and end time (strings 'HH:MM')
+function minutesBetween(startHHMM, endHHMM) {
+  const [sh, sm] = startHHMM.split(':').map(Number);
+  const [eh, em] = endHHMM.split(':').map(Number);
+  return (eh * 60 + em) - (sh * 60 + sm);
+}
+function addMinutes(hhmm, m) {
+  const [h, mm] = hhmm.split(':').map(Number);
+  const t = h * 60 + mm + m;
+  const H = Math.floor((t % 1440) / 60);
+  const M = t % 60;
+  return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;
+}
+
+// Densify a trace: generate N extra points inside polygon, with label/accuracy/time
+function densifyTrace(original, areaPoly, opts) {
+  const extra = opts.count || 0;
+  if (!extra || !Array.isArray(areaPoly) || !areaPoly.length) return [];
+
+  // Time window from the “areas” block's timeanddate (e.g. "... 11:05am to 12:26pm")
+  // Fallback to first/last original point time if parsing fails.
+  const timeStr = (original.areas && original.areas[0] && original.areas[0].timeanddate) || '';
+  const m = timeStr.match(/(\d{1,2}:\d{2})\s*(am|pm)\s*to\s*(\d{1,2}:\d{2})\s*(am|pm)/i);
+  const to24 = (hhmm, ap) => {
+    let [h, mm] = hhmm.split(':').map(Number);
+    const apu = ap.toLowerCase();
+    if (apu === 'pm' && h !== 12) h += 12;
+    if (apu === 'am' && h === 12) h = 0;
+    return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  };
+  let startHHMM = (original.points && original.points[0] && original.points[0].time) || '11:05';
+  let endHHMM   = (original.points && original.points[original.points.length - 1] && original.points[original.points.length - 1].time) || '12:26';
+  if (m) {
+    startHHMM = to24(m[1], m[2]);
+    endHHMM   = to24(m[3], m[4]);
+  }
+
+  const windowMins = Math.max(1, minutesBetween(startHHMM, endHHMM));
+  const out = [];
+  const startLabel = (original.points && original.points.length ? Number(original.points[original.points.length - 1].label || 0) : 0) + 1;
+
+  for (let i = 0; i < extra; i++) {
+    const p = randomPointInPolygon(areaPoly);
+    const label = String(startLabel + i);
+    const accuracy = Math.floor(8 + Math.random() * 33); // 8–40 like your data
+    // spread times across the same window; multiple points can share a minute (OK)
+    const t = addMinutes(startHHMM, Math.floor((i % windowMins)));
+    out.push({ lat: +p.lat.toFixed(6), lng: +p.lng.toFixed(6), label, accuracy, time: t });
+  }
+  return out;
+}
+
+
+
   // Build arrowed polyline; BOTH line and arrows go into "directionInfo"
   function addPolylineWithArrows(map, latlngs, groups) {
     const targetGroup = groups.directionInfo || L.layerGroup().addTo(map);
@@ -263,38 +355,66 @@ function areaPopupHTML(area, overrideDateText) {
   }
 
   // ---------- plot by key (existing behaviour) ----------
-  async function plotTrace(traceKey, opts = {}) {
-    const {
-      scrollToMap = true,
-      highlightRowEl = null,
-      dataUrl = CFG.DEFAULT_LOI_URL
-    } = opts;
+async function plotTrace(traceKey, opts = {}) {
+  const {
+    scrollToMap = true,
+    highlightRowEl = null,
+    dataUrl = CFG.DEFAULT_LOI_URL
+  } = opts;
 
-    const map = window.map;
-    if (!map || typeof map.addLayer !== 'function') {
-      console.warn('[gps-map] window.map not ready yet.');
-      return;
-    }
-
-    const data = await loadGpsData(dataUrl);
-    const trace = data && data[traceKey];
-    if (!trace) {
-      console.error(`[gps-map] Trace not found for key: ${traceKey} (in ${dataUrl})`);
-      return;
-    }
-
-    // If this was triggered from a table row, compute an override date from the first cell
-    let overrideDateText = '';
-    if (highlightRowEl) {
-      const dateCell = highlightRowEl.querySelector('td');
-      if (dateCell) {
-        overrideDateText = htmlToPlain(dateCell.innerHTML).trim();
-      }
-    }
-
-    // Delegate to object plotter
-    return window.plotTraceObject(trace, { scrollToMap, highlightRowEl, overrideDateText });
+  const map = window.map;
+  if (!map || typeof map.addLayer !== 'function') {
+    console.warn('[gps-map] window.map not ready yet.');
+    return;
   }
+
+  const data = await loadGpsData(dataUrl);
+
+  // ✅ Densify any traces that ask for it (once per dataset)
+  if (data && !data.__densified) {
+    Object.keys(data).forEach(k => {
+      const t = data[k];
+      if (
+        t && t.meta && t.meta.densify &&
+        Array.isArray(t.areas) && t.areas[0] &&
+        Array.isArray(t.areas[0].coordinates) && t.areas[0].coordinates.length >= 3
+      ) {
+        try {
+          const poly = t.areas[0].coordinates;
+          const more = densifyTrace(t, poly, t.meta.densify);
+          if (more.length) {
+            t.points = (t.points || []).concat(more);
+            // keep labels in numeric order
+            t.points.sort((a, b) => Number(a.label) - Number(b.label));
+            if (t.meta) t.meta.point_count = t.points.length;
+          }
+        } catch (e) {
+          console.warn('[gps-map] densify failed for', k, e);
+        }
+      }
+    });
+    Object.defineProperty(data, '__densified', { value: true, enumerable: false });
+  }
+
+  const trace = data && data[traceKey];
+  if (!trace) {
+    console.error(`[gps-map] Trace not found for key: ${traceKey} (in ${dataUrl})`);
+    return;
+  }
+
+  // If this was triggered from a table row, compute an override date from the first cell
+  let overrideDateText = '';
+  if (highlightRowEl) {
+    const dateCell = highlightRowEl.querySelector('td');
+    if (dateCell) {
+      overrideDateText = htmlToPlain(dateCell.innerHTML).trim();
+    }
+  }
+
+  // Delegate to object plotter
+  return window.plotTraceObject(trace, { scrollToMap, highlightRowEl, overrideDateText });
+}
+
 
   // ⚠️ Export plotTrace for other scripts (e.g. bh-update-map.js)
   window.plotTrace = plotTrace;
@@ -359,7 +479,8 @@ function areaPopupHTML(area, overrideDateText) {
           color: '#DB90B7',
           fillColor: '#DB90B7',
           fillOpacity: 0.3,
-          weight: 4
+          weight: 5,
+          pane: 'loi-areas'   // <- draw in our high-z pane
         }).addTo(groups.areas);
 
         accumulateBounds(allBounds, pts);
@@ -376,6 +497,7 @@ function areaPopupHTML(area, overrideDateText) {
     });
 
     if (allBounds.isValid()) {
+      groups.areas.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });
       map.fitBounds(allBounds, { padding: [28, 28] });
     }
 

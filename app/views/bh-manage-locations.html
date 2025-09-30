@@ -101,6 +101,10 @@
         You can add your own locations of interest. Search by postcode or enter the address for a location of interest manually.
       </p>
 
+{{ govukInsetText({
+  html: "<b>Please note:</b> it can take up to 24 hours for a new location of interest to appear on the map once you've added it."
+}) }}
+
       {% if data.selectedAddress %}
         {% set _inset = "" %}
         {% if data.loiName and (data.loiName | length) %}

@@ -14,7 +14,7 @@
     // Toggleable overlays
     const directionInfo = L.layerGroup().addTo(map); // track + arrows
     const accuracy      = L.layerGroup().addTo(map); // confidence circles
-    const numbers       = L.layerGroup().addTo(map); // point numbers
+    const numbers       = L.layerGroup(); // point numbers
 
     // Expose only the groups you need
     window.mapLayers = {

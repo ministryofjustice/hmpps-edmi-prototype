@@ -84,7 +84,6 @@
 
 
         {# Description #}
-        {% from "govuk/components/input/macro.njk" import govukInput %}
         {{ govukInput({
           id: "description",
           name: "description",
@@ -92,16 +91,32 @@
           classes: "govuk-!-width-two-thirds"
         }) }}
 
-        {# Notes – prefilled with location details (static for now) #}
-        {% from "govuk/components/textarea/macro.njk" import govukTextarea %}
-        {{ govukTextarea({
-          id: "notes",
-          name: "notes",
-          label: { text: "Notes" },
-          hint: { text: "Record any notes that you think would be useful" },
-          value: "The Fusilier Bar & Restaurant\nAingers Green Rd\nAingers Green\nGreat Bentley\nColchester\nCO7 8NH\n\nLocation type: Pub\n\nDuration: 2 hours 56 minutes",
-          rows: 10
-        }) }}
+
+{# --- Precompute attribute values --- #}
+{% set addrAttr = (data.selectedAddress or "") | replace(", ", "\n") %}
+{% if data.loiName and (data.loiName | length) %}
+  {% set typeAttr = data.loiName %}
+{% else %}
+  {% set typeAttr = "Custom" %}
+{% endif %}
+
+{# --- Build a clean params object, then call the macro --- #}
+{% set notesParams = {
+  id: "notes",
+  name: "notes",
+  label: { text: "Notes" },
+  hint:  { text: "Record any notes that you think would be useful" },
+  value: data.notes or "",
+  rows: 8,
+  attributes: {
+    "data-address": addrAttr,
+    "data-type": typeAttr,
+    "data-duration": "6 hours 4 mins"
+  }
+} %}
+
+{{ govukTextarea(notesParams) }}
+
 
         {# Alert #}
         {% from "govuk/components/radios/macro.njk" import govukRadios %}

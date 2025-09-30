@@ -50,28 +50,41 @@
     {# ONE FORM WRAPS EVERYTHING #}
     <form method="post" action="/bh-manage-locations" novalidate>
 
-      {# --- Section 1: Which LOI categories to show --- #}
-      {{ govukCheckboxes({
-        name: "loiTypes",
-        fieldset: {
-          legend: {
-            text: "Manage locations of interest",
-            isPageHeading: true,
-            classes: "govuk-fieldset__legend--m"
-          }
-        },
-        hint: { text: "Show the following locations of interest on the location activity tab" },
-        items: [
-          { value: "approved premises",  text: "Approved premises",  checked: data.loiTypes and ("approved premises" in data.loiTypes) },
-          { value: "betting shops",     text: "Betting shops",      checked: data.loiTypes and ("betting shops" in data.loiTypes) },
-          { value: "places of worship", text: "Places of worship",  checked: data.loiTypes and ("places of worship" in data.loiTypes) },
-          { value: "police stations",   text: "Police stations",    checked: data.loiTypes and ("police stations" in data.loiTypes) },
-          { value: "probation offices", text: "Probation offices",  checked: data.loiTypes and ("probation offices" in data.loiTypes) },
-          { value: "pubs",              text: "Pubs",               checked: data.loiTypes and ("pubs" in data.loiTypes) },
-          { value: "schools",           text: "Schools",            checked: data.loiTypes and ("schools" in data.loiTypes) },
-          { value: "swimming pools",    text: "Swimming pools",     checked: data.loiTypes and ("swimming pools" in data.loiTypes) }
-        ]
-      }) }}
+    {# --- defaults for first-time / cleared sessions --- #}
+{% set ALL_LOI_TYPES = [
+  "approved premises",
+  "betting shops",
+  "places of worship",
+  "police stations",
+  "probation offices",
+  "pubs",
+  "schools",
+  "swimming pools"
+] %}
+{% set selectedTypes = data.loiTypes or ALL_LOI_TYPES %}
+
+{{ govukCheckboxes({
+  name: "loiTypes",
+  fieldset: {
+    legend: {
+      text: "Manage locations of interest",
+      isPageHeading: true,
+      classes: "govuk-fieldset__legend--m"
+    }
+  },
+  hint: { text: "Show the following locations of interest on the location activity tab" },
+  items: [
+    { value: "approved premises",  text: "Approved premises",  checked: ("approved premises" in selectedTypes) },
+    { value: "betting shops",     text: "Betting shops",      checked: ("betting shops" in selectedTypes) },
+    { value: "places of worship", text: "Places of worship",  checked: ("places of worship" in selectedTypes) },
+    { value: "police stations",   text: "Police stations",    checked: ("police stations" in selectedTypes) },
+    { value: "probation offices", text: "Probation offices",  checked: ("probation offices" in selectedTypes) },
+    { value: "pubs",              text: "Pubs",               checked: ("pubs" in selectedTypes) },
+    { value: "schools",           text: "Schools",            checked: ("schools" in selectedTypes) },
+    { value: "swimming pools",    text: "Swimming pools",     checked: ("swimming pools" in selectedTypes) }
+  ]
+}) }}
+
 
       {# --- Section 2: Outside the UK (kept as a single checkbox) --- #}
       {{ govukCheckboxes({

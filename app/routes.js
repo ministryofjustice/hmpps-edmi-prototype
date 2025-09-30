@@ -96,7 +96,6 @@ router.use(function setLoiDates(req, res, next) {
 });
 
 
-
 router.get('/bh-location', (req, res) => {
   const d = new Date();
 
@@ -160,10 +159,68 @@ router.get('/loi/clear', function (req, res) {
 
 // Manage Locations form submission
 router.post('/bh-manage-locations', function (req, res) {
-  const v = req.session.data.loiTypes;
-  if (typeof v === 'string') req.session.data.loiTypes = [v];
-  if (!v) req.session.data.loiTypes = [];
+  let { loiTypes } = req.body;   // read from the form body, not the old session
+
+  if (!loiTypes) {
+    loiTypes = []; // nothing ticked
+  } else if (!Array.isArray(loiTypes)) {
+    loiTypes = [loiTypes]; // single value case
+  }
+
+  req.session.data.loiTypes = loiTypes;
   return res.redirect('/bh-location');
+});
+
+
+// POST: add address manually
+router.post('/add-location-manually', function (req, res) {
+  const { loiName, addressLine1, addressLine2, addressTown, addressCounty, addressPostcode } = req.body;
+
+  // Save name
+  req.session.data.loiName = loiName;
+
+  // Build a single string address for reuse in the table/inset
+  const parts = [addressLine1, addressLine2, addressTown, addressCounty, addressPostcode]
+    .filter(Boolean); // remove empties
+
+  req.session.data.selectedAddress = parts.join(', ');
+
+  // Redirect back to manage locations
+  res.redirect('/bh-manage-locations');
+});
+
+
+// GET: NDelius record form (prefill from trace + date)
+router.get('/ndelius-record', function (req, res) {
+  const { trace = '' } = req.query;
+  const sess = req.session.data || {};
+
+  const isCustom =
+    trace === 'finch-road' ||
+    trace === 'custom-1' ||
+    (typeof trace === 'string' && trace.toLowerCase().startsWith('custom'));
+
+  if (isCustom) {
+    const addrLines = (sess.selectedAddress || '').split(', ').join('\n').trim();
+    const typeName  = (sess.loiName || '').trim() || 'Custom';
+    const duration  = '6 hours 4 mins';
+
+    const defaultNotes = [
+      addrLines,
+      addrLines ? '' : '',
+      `Location type: ${typeName}`,
+      '',
+      `Duration: ${duration}`
+    ].join('\n').trim();
+
+    if (!sess.notes || !sess.notes.trim()) {
+      req.session.data.notes = defaultNotes; // only for custom
+    }
+  } else {
+    req.session.data.notes = ''; // ensure built-ins don’t inherit last custom
+  }
+
+  res.render('ndelius-record', { query: req.query });
 });
 
 

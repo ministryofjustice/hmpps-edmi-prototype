@@ -55,7 +55,49 @@
 
 <h2 class="govuk-heading-m" id="map-header">Curfew activity</h2>
 
+<section class="bh-curfew-overview govuk-!-margin-bottom-7">
+  <div class="bh-curfew-grid govuk-width-container">
 
+    <!-- LEFT HAND narrative -->
+    <div class="bh-curfew-left">
+      <p class="govuk-body govuk-!-margin-bottom-6">
+        Richard Marks was <strong>out during curfew for 31 minutes</strong> from 1.05am to 1.36am on Sunday 8 June 2025.
+      </p>
+
+      <p class="govuk-body govuk-!-margin-bottom-4">
+        Richard <strong>arrived late at their approved address on 5 days</strong> for a total of 33 violation minutes and
+        <strong>left early on 1 day</strong> for a total of 7 violation minutes.
+      </p>
+
+      <p class="govuk-body govuk-!-margin-bottom-6">
+        They are now 20 minutes away from breaching their first threshold.
+      </p>
+
+      {{ govukInsetText({
+  html: "<a href='#atvs'>View Billy’s accumulated time violations (ATV)</a>"
+}) }}
+    </div>
+
+    <!-- RIGHT: the forecast card -->
+    <aside class="bh-forecast-card" aria-labelledby="forecast-heading">
+      <h2 id="forecast-heading" class="govuk-heading-m govuk-!-margin-bottom-2">Forecast</h2>
+
+      <span class="bh-tag bh-tag--danger-outline govuk-!-margin-bottom-3" aria-label="Not likely">
+        NOT LIKELY
+      </span>
+
+      <p class="govuk-body govuk-!-margin-bottom-4">
+        Electronic monitoring calculates the likelihood of compliance as being
+        <strong>less than 50%</strong>
+      </p>
+
+      <p class="govuk-hint govuk-!-margin-bottom-0 govuk-!-font-size-16">
+        Forecasts are updated daily when the latest HDC data is available
+      </p>
+    </aside>
+
+  </div>
+</section>
 
 
 {% endblock %}

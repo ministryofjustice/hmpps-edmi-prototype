@@ -12,6 +12,48 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">30 September 2025</dt>
+  <dd class="govuk-summary-list__value">
+    State of Play – LOI / NDelius Prefill work:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Locations of Interest (LOI) system extended: custom/manual addresses flow into the LOI table and can be sent to NDelius.</li>
+      <li><code>/ndelius-record</code> route now pre-fills Notes for custom addresses (address, type, duration) while clearing Notes for built-ins to keep JS lookup intact.</li>
+      <li>Textarea attributes (<code>data-address</code>, <code>data-type</code>, <code>data-duration</code>) added as a safe fallback for JS prefill.</li>
+      <li>Clicking “View” in the LOI table now scrolls to the map, plots the trace, and syncs the search Date/Time fields with that LOI record.</li>
+      <li>Prototype deliberately avoids generating “before/after” trails — left open for discussion with the product team.</li>
+      <li>Footer added using static PDS component HTML + lightweight CSS shim, with Accessibility / Cookies / Privacy / Clear data links.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">30 September 2025</dt>
+  <dd class="govuk-summary-list__value">
+    Improved integration between LOI table and map filters:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Clicking an LOI table “View” link now updates the map <em>and</em> syncs the search Date/Time fields with that LOI record.</li>
+      <li>This supports research prompts like “what happened before/after this visit?” without requiring extra user input.</li>
+      <li>Kept the implementation lightweight so we can simulate the behaviour without storing new pre/post trace data.</li>
+    </ul>
+  </dd>
+</div>
+
+<div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">27 September 2025</dt>
+  <dd class="govuk-summary-list__value">
+    Refined <strong>Send to NDelius</strong> prefill logic:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Added a server-side route (<code>/ndelius-record</code>) that pre-populates Notes only for custom addresses.</li>
+      <li>Built-in LOIs now clear the Notes field so <code>ndelius-prefill.js</code> lookup runs as before.</li>
+      <li>Updated <code>ndelius-record.html</code> to precompute safe textarea attributes (<code>data-address</code>, <code>data-type</code>, <code>data-duration</code>) avoiding Nunjucks parse errors.</li>
+      <li>Result: stable, predictable prefill behaviour for both built-in and custom LOIs during testing.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">23 September 2025</dt>
   <dd class="govuk-summary-list__value">
     Iterated on LOI presentation and testing readiness:

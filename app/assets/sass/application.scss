@@ -695,3 +695,45 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
         display: none
     }
 }
+
+/* pds-footer.css – minimal styling for probation-common-footer in prototypes */
+
+.probation-common-footer {
+  background: #f3f2f1;            /* GOV.UK footer grey */
+  border-top: 1px solid #b1b4b6;  /* GOV.UK border grey */
+  padding: 30px 0;
+}
+
+.probation-common-footer__support-links {
+  margin: 0;
+}
+
+.probation-common-footer__inline-list {
+  list-style: none;   /* remove bullets */
+  margin: 0;
+  padding: 0;
+}
+
+.probation-common-footer__inline-list-item {
+  display: inline-block;
+  margin: 0 16px 0 0; /* space between links */
+}
+
+.probation-common-footer__link {
+  /* Use default GOV.UK link styles; nothing extra needed */
+}
+
+/* Keep the footer flush with page edge on small screens */
+.probation-common-footer .govuk-width-container {
+  box-sizing: border-box;
+}
+
+/* Optional: a little more breathing room on wide screens */
+@media (min-width: 40.0625em) {
+  .probation-common-footer {
+    padding: 36px 0;
+  }
+  .probation-common-footer__inline-list-item {
+    margin-right: 20px;
+  }
+}

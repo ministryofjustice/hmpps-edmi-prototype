@@ -128,7 +128,8 @@
           "Ground: Retail",
           "1st floor: Offices",
           "2nd floor: Residential",
-          "3rd floor: Residential"
+          "3rd floor: Residential",
+          "(Data accurate as of 09/2025)"
         ],
         "coordinates": [
           { "lat": 51.887198, "lng": 0.894521 },

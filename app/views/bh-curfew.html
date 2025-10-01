@@ -1,0 +1,61 @@
+{% extends "layouts/main.html" %}
+
+{% set navItems = [
+  { text: "Home", href: "index", active: false },
+  { text: "Cases", href: "cases", active: true },
+  { text: "Search", href: "#", active: false }
+] %}
+
+{% set pageName="Curfew activity, Billy Hoskins" %}
+
+{% block content %}
+{% block breadcrumb %}
+  {% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+  {{ govukBreadcrumbs({
+    items: [
+      { text: "Cases", href: "/cases" },
+      { text: "Billy Hoskins", href: "billy-hoskins" }
+    ]
+  }) }}
+{% endblock %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-full">
+          <span class="govuk-caption-m govuk-!-margin-bottom-2">
+        <abbr title="Case reference number" style="text-decoration: none">CRN</abbr>: Y123456 
+        <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
+        Date of birth: 18 Nov 1995 (Age 29)
+        <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
+        <a href="https://www.figma.com/proto/vlCrUVrP6fuq59QzUg9lyy/GPS-Alpha-2.0?page-id=6722%3A15258&node-id=6936-6250&p=f&viewport=-4249%2C-4220%2C0.21&t=gk748NC1vQvFiqZc-8&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=6722%3A16450&hide-ui=1" style="color:#505a5f; text-decoration: none;">Sentence: CJA - Community Order</a>
+      </span>
+    <h1 class="govuk-heading-l govuk-!-margin-bottom-4">
+      Billy Hoskins
+    </h1>
+  </div>
+</div>
+
+{{ mojSubNavigation({
+  label: "Sub navigation",
+  items: [{
+    text: "Overview",
+    href: "billy-hoskins"
+  },
+  {
+    text: "Curfew activity",
+    href: "",
+    active: true
+  }, {
+    text: "Location activity",
+    href: "bh-location"
+  }, {
+    text: "Case notes",
+    href: "bh-case-notes-ems"
+  }]
+}) }}
+
+<h2 class="govuk-heading-m" id="map-header">Curfew activity</h2>
+
+
+
+
+{% endblock %}

@@ -12,6 +12,36 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">2 October 2025</dt>
+  <dd class="govuk-summary-list__value">
+    New <strong>Curfew</strong> tab and trail updates:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Added dedicated Curfew tab in the prototype, with first-pass UI for overnight compliance checks.</li>
+      <li>Reworked LOI trails: removed experimental densify code in favour of hard-coded points for full transparency and manual editing.</li>
+      <li>Standardised rule for trails: 10 points before, 10 points after, and 1 point per minute inside the LOI duration.</li>
+      <li>Created clean, one-line JSON point format (lat/lng/label/accuracy/time) to reduce file size and ease editing.</li>
+      <li>Corrected timespans: first/last times preserved from LOI record, with all intermediate points spread evenly across duration.</li>
+      <li>Improved map responsiveness by pruning excess randomised points and fixing “starburst” trail artefacts.</li>
+      <li>Fixed polygon click-through so designers can tap map polygons to log coordinates directly.</li>
+    </ul>
+  </dd>
+</div>
+
+<div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">1 October 2025</dt>
+  <dd class="govuk-summary-list__value">
+    Hard-coded LOI trail experiments:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Trialled full JSON export of densified trails (~10k points) to hard-code journeys, but reduced set proved more stable for the prototype.</li>
+      <li>Identified and removed “starburst” errors where trails jumped in/out of LOI polygons unrealistically.</li>
+      <li>Settled on workflow of manually recording entry/exit routes via map-click logging, then curating realistic point sets per LOI.</li>
+      <li>Confirmed that pre/after trails + inside polygon points are sufficient for research and responsive enough in the browser.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">30 September 2025</dt>
   <dd class="govuk-summary-list__value">
     State of Play – LOI / NDelius Prefill work:

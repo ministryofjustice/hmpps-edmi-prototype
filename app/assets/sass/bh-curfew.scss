@@ -2,7 +2,7 @@
 
 .bh-curfew-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px; /* content + right card */
+  grid-template-columns: minmax(0, 1fr) 250px; /* content + right card */
   gap: 24px;
 }
 

@@ -139,15 +139,41 @@ function addMinutes(hhmm, m) {
   return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;
 }
 
-// Densify a trace: generate N extra points inside polygon, with label/accuracy/time
-function densifyTrace(original, areaPoly, opts) {
-  const extra = opts.count || 0;
-  if (!extra || !Array.isArray(areaPoly) || !areaPoly.length) return [];
+// --- helpers for random-walk densify ---
+function metersToDegrees(lat, meters) {
+  const dLat = meters / 111320; // ~111.32km per degree latitude
+  const dLng = meters / (111320 * Math.cos(lat * Math.PI / 180) || 1);
+  return { dLat, dLng };
+}
 
-  // Time window from the “areas” block's timeanddate (e.g. "... 11:05am to 12:26pm")
-  // Fallback to first/last original point time if parsing fails.
-  const timeStr = (original.areas && original.areas[0] && original.areas[0].timeanddate) || '';
+function polygonCentroid(poly) {
+  // basic polygon centroid (lat/lng objects)
+  let x = 0, y = 0, f, area = 0;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    f = (poly[i].lng * poly[j].lat) - (poly[j].lng * poly[i].lat);
+    x += (poly[i].lng + poly[j].lng) * f;
+    y += (poly[i].lat + poly[j].lat) * f;
+    area += f;
+  }
+  area *= 0.5;
+  if (!area) return { lat: poly[0].lat, lng: poly[0].lng };
+  return { lat: y / (6 * area), lng: x / (6 * area) };
+}
+
+
+// Densify a trace: generate N extra points inside polygon, with label/accuracy/time,
+// and return the LOI time window so the caller can splice into the right place.
+function densifyTrace(original, areaPoly, opts) {
+  const extra = opts?.count || 0;
+  if (!extra || !Array.isArray(areaPoly) || !areaPoly.length) {
+    return { points: [], startHHMM: null, endHHMM: null };
+  }
+
+  // Read LOI window from areas[0].timeanddate (e.g. "... 11:05am to 12:26pm")
+  // Fallback to first/last original point times.
+  const timeStr = original?.areas?.[0]?.timeanddate || '';
   const m = timeStr.match(/(\d{1,2}:\d{2})\s*(am|pm)\s*to\s*(\d{1,2}:\d{2})\s*(am|pm)/i);
+
   const to24 = (hhmm, ap) => {
     let [h, mm] = hhmm.split(':').map(Number);
     const apu = ap.toLowerCase();
@@ -155,27 +181,111 @@ function densifyTrace(original, areaPoly, opts) {
     if (apu === 'am' && h === 12) h = 0;
     return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
   };
-  let startHHMM = (original.points && original.points[0] && original.points[0].time) || '11:05';
-  let endHHMM   = (original.points && original.points[original.points.length - 1] && original.points[original.points.length - 1].time) || '12:26';
+
+  let startHHMM = original?.points?.[0]?.time || '11:05';
+  let endHHMM   = original?.points?.[original.points.length - 1]?.time || '12:26';
   if (m) {
     startHHMM = to24(m[1], m[2]);
     endHHMM   = to24(m[3], m[4]);
   }
 
   const windowMins = Math.max(1, minutesBetween(startHHMM, endHHMM));
+  const startLabel = Number(original?.points?.[0]?.label || 0); // we will relabel after merge
   const out = [];
-  const startLabel = (original.points && original.points.length ? Number(original.points[original.points.length - 1].label || 0) : 0) + 1;
+
+  // pick a sensible anchor inside the LOI window if possible, else centroid
+  const toMin = (s) => {
+    const [H, M] = String(s || '00:00').split(':').map(Number);
+    return H * 60 + M;
+  };
+  const sMin = toMin(startHHMM), eMin = toMin(endHHMM);
+  const anchor = (original.points || []).find(p => {
+    const t = toMin(p.time);
+    return t >= sMin && t <= eMin;
+  }) || polygonCentroid(areaPoly);
+
+  let cur = { lat: anchor.lat, lng: anchor.lng };
 
   for (let i = 0; i < extra; i++) {
-    const p = randomPointInPolygon(areaPoly);
-    const label = String(startLabel + i);
-    const accuracy = Math.floor(8 + Math.random() * 33); // 8–40 like your data
-    // spread times across the same window; multiple points can share a minute (OK)
+    // 8–35 m step, random bearing; keep steps modest so it "meanders"
+    const stepMeters = 8 + Math.random() * 27;
+    const bearing = Math.random() * 2 * Math.PI;
+    const { dLat, dLng } = metersToDegrees(cur.lat, stepMeters);
+
+    // candidate step
+    let next = {
+      lat: cur.lat + Math.sin(bearing) * dLat,
+      lng: cur.lng + Math.cos(bearing) * dLng
+    };
+
+    // keep it inside the polygon: re-roll a few times, then snap to centroid
+    let attempts = 0;
+    while (
+      !pointInPolygon([next.lat, next.lng], areaPoly.map(p => [p.lat, p.lng])) &&
+      attempts < 4
+    ) {
+      const b2 = Math.random() * 2 * Math.PI;
+      const m2 = 6 + Math.random() * 16;
+      const d2 = metersToDegrees(cur.lat, m2);
+      next = {
+        lat: cur.lat + Math.sin(b2) * d2.dLat,
+        lng: cur.lng + Math.cos(b2) * d2.dLng
+      };
+      attempts++;
+    }
+    if (!pointInPolygon([next.lat, next.lng], areaPoly.map(p => [p.lat, p.lng]))) {
+      next = polygonCentroid(areaPoly);
+    }
+
+    const accuracy = Math.floor(8 + Math.random() * 33);
     const t = addMinutes(startHHMM, Math.floor((i % windowMins)));
-    out.push({ lat: +p.lat.toFixed(6), lng: +p.lng.toFixed(6), label, accuracy, time: t });
+
+    out.push({
+      lat: +next.lat.toFixed(6),
+      lng: +next.lng.toFixed(6),
+      label: String(startLabel + i + 1), // temp label; we relabel after splice
+      accuracy,
+      time: t,
+      isDensified: true
+    });
+
+    cur = next;
   }
-  return out;
+
+
+  return { points: out, startHHMM, endHHMM };
 }
+
+function hhmmToMinutes(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return (h * 60) + m;
+}
+
+function spliceDensifiedIntoWindow(points, densified, startHHMM, endHHMM) {
+  if (!densified?.length) return points;
+
+  const startMin = hhmmToMinutes(startHHMM);
+  const endMin   = hhmmToMinutes(endHHMM);
+
+  // Find the first point whose time falls INSIDE the LOI window.
+  const firstInsideIdx = points.findIndex(p => {
+    const t = hhmmToMinutes(p.time);
+    return t >= startMin && t <= endMin;
+  });
+
+  // Fallback: if none detected, insert near the start (but this should not happen)
+  const insertAt = (firstInsideIdx === -1) ? 0 : firstInsideIdx + 1;
+
+  const merged = points.slice();
+  merged.splice(insertAt, 0, ...densified);
+
+  // Renumber labels 1..N (keeps everything tidy for tooltips/overlays)
+  for (let i = 0; i < merged.length; i++) {
+    merged[i] = { ...merged[i], label: String(i + 1) };
+  }
+  return merged;
+}
+
 
 
 
@@ -370,32 +480,6 @@ async function plotTrace(traceKey, opts = {}) {
 
   const data = await loadGpsData(dataUrl);
 
-  // ✅ Densify any traces that ask for it (once per dataset)
-  if (data && !data.__densified) {
-    Object.keys(data).forEach(k => {
-      const t = data[k];
-      if (
-        t && t.meta && t.meta.densify &&
-        Array.isArray(t.areas) && t.areas[0] &&
-        Array.isArray(t.areas[0].coordinates) && t.areas[0].coordinates.length >= 3
-      ) {
-        try {
-          const poly = t.areas[0].coordinates;
-          const more = densifyTrace(t, poly, t.meta.densify);
-          if (more.length) {
-            t.points = (t.points || []).concat(more);
-            // keep labels in numeric order
-            t.points.sort((a, b) => Number(a.label) - Number(b.label));
-            if (t.meta) t.meta.point_count = t.points.length;
-          }
-        } catch (e) {
-          console.warn('[gps-map] densify failed for', k, e);
-        }
-      }
-    });
-    Object.defineProperty(data, '__densified', { value: true, enumerable: false });
-  }
-
   const trace = data && data[traceKey];
   if (!trace) {
     console.error(`[gps-map] Trace not found for key: ${traceKey} (in ${dataUrl})`);
@@ -558,5 +642,5 @@ async function plotTrace(traceKey, opts = {}) {
       });
     }
   });
-
+  
 })();

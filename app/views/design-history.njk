@@ -12,6 +12,23 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">6 October 2025</dt>
+  <dd class="govuk-summary-list__value">
+    Curfew tab enhancements and accessible data visualisation:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Introduced Chart.js integration to visualise daily curfew violation minutes.</li>
+      <li>Added range chooser for <strong>Last 7 days</strong>, <strong>Last 30 days</strong> and <strong>Since tag was fitted</strong> (43 days) views.</li>
+      <li>Implemented accessible graph/table toggle (“Change to accessible table view”), syncing both data sources.</li>
+      <li>Generated realistic demo data with <strong>acceptable</strong>, <strong>unacceptable</strong> and <strong>pending</strong> violation categories.</li>
+      <li>Displayed all three categories as distinct Chart.js lines with shared x-axis labels and colour-coded legend.</li>
+      <li>Created sortable GOV.UK table view listing individual violation events, colour-coded by severity (unacceptable rows in red).</li>
+      <li>Improved code structure by moving inline JavaScript to <code>/public/javascripts/curfew-charts.js</code> for maintainability.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">2 October 2025</dt>
   <dd class="govuk-summary-list__value">
     New <strong>Curfew</strong> tab and trail updates:
@@ -178,28 +195,29 @@
   </dl>
 
   <h2 class="govuk-heading-m govuk-!-margin-top-8">Accessibility considerations</h2>
-  <ul class="govuk-list govuk-list--bullet">
-    <li><strong>Map status updates:</strong> Added <code>aria-live="polite"</code> live regions so screen reader users are notified when the map updates without interruption.</li>
-    <li><strong>Clear filters:</strong> Ensures a predictable reset to the default map state to avoid confusing partial UI states.</li>
-    <li><strong>Point markers:</strong> Markers expose meaningful <code>title</code>/<code>aria-label</code> text (point #, accuracy, time, coordinates).</li>
-    <li><strong>Areas/polygons:</strong> Popups use semantic HTML with headings and concise labels; dates match the LOI table to reduce cognitive load.</li>
-    <li><strong>Overnight chart:</strong> Each bar has an <code>aria-label</code> giving the full overnight span (19:00→07:00) and compliance status; visible labels use compact date ranges.</li>
-    <li><strong>Colour and contrast:</strong> Red/green is always paired with text or ARIA descriptions (no colour-only cues).</li>
-    <li><strong>Tables:</strong> GOV.UK table macros with proper semantics and sortable headers; <code>aria-sort</code> attributes used where applicable.</li>
-    <li><strong>Structure:</strong> Consistent heading levels and GOV.UK component patterns to aid navigation by assistive tech.</li>
-  </ul>
+<ul class="govuk-list govuk-list--bullet">
+  <li><strong>Chart accessibility:</strong> Canvas given <code>role="img"</code>, <code>tabindex="0"</code>, and <code>aria-describedby</code> (populated with a human-readable summary). Legend uses text labels; the “Total” series has a dashed line so we don’t rely on colour alone.</li>
+  <li><strong>Live announcements:</strong> Added a polite live region to announce when the chart updates (range or duration changes) without stealing focus.</li>
+  <li><strong>Equivalent data view:</strong> “Change to accessible table view” toggles a full, sortable table that mirrors the chart data (daily totals and per-event table). The toggle is a real <code>&lt;button&gt;</code> with <code>aria-controls</code> and updates its text/state.</li>
+  <li><strong>Range & duration controls:</strong> Links are true anchors with <code>aria-current</code> applied to the active option and data attributes for scripting (<code>data-range</code>, <code>data-min</code>). Heading text updates to match the selection.</li>
+  <li><strong>Focus management:</strong> After changing range/duration, focus isn’t hijacked; the page scrolls to the “Violation minutes” anchor for context only. The toggle preserves focus when switching views.</li>
+  <li><strong>Map status updates:</strong> Kept the polite live regions for map/filter changes so SR users are notified without interruption.</li>
+  <li><strong>Tables & sorting:</strong> GOV.UK / MOJ sortable tables with correct <code>aria-sort</code> on headers and machine-readable <code>data-sort-value</code> for dates/times.</li>
+  <li><strong>Colour & contrast:</strong> Red/green is always paired with text labels; custom “warning/success” classes check out against AA for text on white. Unacceptable rows are styled across the whole row while preserving contrast.</li>
+  <li><strong>Structure:</strong> Consistent GOV.UK headings, lists, and summary cards; polygon/marker popups use semantic HTML with concise labels and dates matched to the LOI table.</li>
+</ul>
 
-  <h2 class="govuk-heading-m govuk-!-margin-top-6">Accessibility – next steps</h2>
-  <ul class="govuk-list govuk-list--bullet">
-    <li><strong>Keyboard-only checks:</strong> Ensure all controls (filters, “View on map”, Clear filters, base-layer switch) are reachable and operable via keyboard with visible focus.</li>
-    <li><strong>Screen reader runs:</strong> Quick audits with NVDA + Firefox and VoiceOver + Safari; confirm live region announcements are timely and not verbose.</li>
-    <li><strong>Contrast testing:</strong> Validate bar colours, table text, and focus states against WCAG AA (including hover/focus states).</li>
-    <li><strong>Zoom & reflow:</strong> Test at 200%/400% zoom and on small screens for reflow with no horizontal scrolling of key content.</li>
-    <li><strong>Motion/animation preferences:</strong> Respect <code>prefers-reduced-motion</code> if any animated transitions are introduced later.</li>
-    <li><strong>Sortable tables:</strong> Verify <code>aria-sort</code> updates correctly when columns are sorted and that sort order is perceivable to SR users.</li>
-    <li><strong>Error & status messaging:</strong> Standardise error summaries and inline errors for filters; ensure programmatic focus is set on update.</li>
-    <li><strong>Map keyboard fallback:</strong> Provide non-map alternatives (table rows, summary text) for users who cannot or do not use the map.</li>
-    <li><strong>Colour-blind review:</strong> Check red/green bars with common colour-vision simulations; add a small legend if user research suggests it.</li>
-    <li><strong>User research:</strong> Include at least one session with AT users during alpha to validate assumptions about labels and interactions.</li>
-  </ul>
+<h2 class="govuk-heading-m govuk-!-margin-top-6">Accessibility – next steps</h2>
+<ul class="govuk-list govuk-list--bullet">
+  <li><strong>Keyboard-only audit:</strong> Confirm all controls (range/duration links, chart/table toggle, table sort headers) are reachable in a logical order with visible focus.</li>
+  <li><strong>Screen reader runs:</strong> NVDA + Firefox and VoiceOver + Safari to check: chart description is read when the canvas is focused; live region updates are concise; table view exposes the same info.</li>
+  <li><strong>Focus & announcement polish:</strong> Consider moving focus to the updated heading after range/duration changes and announcing the new period (“Chart updated: Last 7 days, Over 5 minutes”).</li>
+  <li><strong>Contrast testing:</strong> Re-verify unacceptable (red) row styling and dashed “Total” line against WCAG AA, including hover/focus states.</li>
+  <li><strong>Reduced motion:</strong> Respect <code>prefers-reduced-motion</code> by disabling chart animations and smooth scrolling when set.</li>
+  <li><strong>Sortable tables:</strong> Confirm <code>aria-sort</code> toggles correctly and that sort order is perceivable to SR users (announce in a live region if needed).</li>
+  <li><strong>Zoom & reflow:</strong> Test at 200%/400% and on small screens; ensure graph area collapses gracefully and the table remains horizontally scrollable only if genuinely necessary.</li>
+  <li><strong>Colour-vision checks:</strong> Run common colour-blind simulations; adjust palette or add markers/patterns to differentiate series if required.</li>
+  <li><strong>User research:</strong> Include at least one session with AT users to validate the chart/table switcher, the range/duration pattern, and the row-level “unacceptable” styling.</li>
+</ul>
+
 {% endblock %}

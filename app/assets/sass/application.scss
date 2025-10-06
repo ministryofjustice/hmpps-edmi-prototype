@@ -775,3 +775,11 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
 #bh-events-body tr[data-status="unacceptable"]:focus-within {
   background-color: #f6d7d2; /* GOV.UK “highlight” red tint */
 }
+
+.bh-duration-link.is-active {
+  color: #0b0c0c;          /* GOV.UK black text colour */
+  text-decoration: none;   /* Remove underline */
+  pointer-events: none;    /* Disable link click */
+  cursor: default;         /* Keep it feeling static */
+  font-weight: bold;       /* Optional for emphasis */
+}

@@ -119,15 +119,22 @@
             aria-controls="bh-chart, bh-table" data-view="chart">
       Change to accessible table view
     </button>
+    <button class="govuk-button govuk-button--secondary" id="bh-chart-type"
+        aria-controls="bh-chart"
+        type="button">
+  Switch to stacked bars
+</button>
+
 
     <p class="govuk-!-margin-bottom-0 govuk-!-font-size-16">
       Show duration:
-      <a href="#" class="bh-duration-link" aria-current="true">All</a> |
-      <a href="#" class="bh-duration-link">Over 1 min</a> |
-      <a href="#" class="bh-duration-link">Over 5 mins</a> |
-      <a href="#" class="bh-duration-link">Over 15 mins</a>
+      <a href="#" class="bh-duration-link" data-min="0">All</a> |
+      <a href="#" class="bh-duration-link" data-min="1">Over 1 min</a> |
+      <a href="#" class="bh-duration-link" data-min="5">Over 5 mins</a> |
+      <a href="#" class="bh-duration-link" data-min="15">Over 15 mins</a>
     </p>
   </div>
+  
 
   <!-- Chart view -->
   <div id="bh-chart" role="img"

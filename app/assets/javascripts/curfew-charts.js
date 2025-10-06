@@ -137,11 +137,36 @@
     return new Chart(canvas.getContext('2d'),{
       type:'line',
       data:{ labels:[], datasets:[
-        {label:'Acceptable',   data:[], tension:0.25, pointRadius:2, borderWidth:2, borderColor:'#1d70b8'},
-        {label:'Unacceptable', data:[], tension:0.25, pointRadius:2, borderWidth:2, borderColor:'#d4351c'},
-        {label:'Pending',      data:[], tension:0.25, pointRadius:2, borderWidth:2, borderColor:'#6f72af'},
-        {label:'Total',        data:[], tension:0.25, pointRadius:0, borderWidth:1.5, borderColor:'#6f777b', borderDash:[6,4]}
-      ]},
+        {
+            label:'Acceptable',
+            data:[],
+            tension:0.25, pointRadius:2, borderWidth:2,
+            borderColor:'#008b76',
+            backgroundColor:'#008b76'   // GOV.UK green 300
+        },
+        {
+            label:'Unacceptable',
+            data:[],
+            tension:0.25, pointRadius:2, borderWidth:2,
+            borderColor:'#d4351c',
+            backgroundColor:'#d4351c'   // GOV.UK red
+        },
+        {
+            label:'Pending',
+            data:[],
+            tension:0.25, pointRadius:2, borderWidth:2,
+            borderColor:'#b1b4b6',
+            backgroundColor:'#b1b4b6'   // GOV.UK grey 400
+        },
+        {
+            label:'Total',
+            data:[],
+            tension:0.25, pointRadius:0, borderWidth:1.5,
+            borderColor:'#505a5f',
+            borderDash:[6,4],
+            backgroundColor:'#505a5f'   // GOV.UK grey 500
+        }
+        ]},
       options:{
         responsive:true, maintainAspectRatio:false,
         interaction:{ mode:'index', intersect:false },
@@ -151,7 +176,16 @@
     });
   }
 
-  function setDurationUI(links, min){ links.forEach(a=>a.setAttribute('aria-current', a.dataset.min==String(min))); }
+  function setDurationUI(links, min) {
+  links.forEach(a => {
+    if (a.dataset.min == String(min)) {
+      a.setAttribute('aria-current', 'true');
+    } else {
+      a.removeAttribute('aria-current');
+    }
+  });
+}
+
 
   onReady(function(){
     const headingEl=document.getElementById('violation-heading');
@@ -175,6 +209,67 @@
 
     const chart=ensureChart(canvas);
     if(!chart){ console.warn('[curfew] Chart not available'); return; }
+
+    // === Chart type switcher (line ↔ grouped bars ↔ stacked bars) ===
+const typeBtn = document.getElementById('bh-chart-type');
+
+// Track mode and cycle order
+let chartMode = 'line'; // 'line' | 'bar-grouped' | 'bar-stacked'
+
+function setChartMode(mode) {
+  chartMode = mode;
+
+  if (mode === 'line') {
+    chart.config.type = 'line';
+    chart.options.scales.x.stacked = false;
+    chart.options.scales.y.stacked = false;
+    // show the Total line in line mode
+    chart.data.datasets[3].hidden = false;
+
+    typeBtn.textContent = 'Switch to stacked bars';
+    canvas.setAttribute('aria-label',
+      'Line chart showing acceptable, unacceptable, pending and total violation minutes per day.');
+  }
+
+  else if (mode === 'bar-grouped') {
+    chart.config.type = 'bar';
+    chart.options.scales.x.stacked = false;
+    chart.options.scales.y.stacked = false;
+    // hide Total in bar modes (it duplicates the stack/columns)
+    chart.data.datasets[3].hidden = true;
+
+    typeBtn.textContent = 'Switch to line chart';
+    canvas.setAttribute('aria-label',
+      'Grouped bar chart showing acceptable, unacceptable and pending violation minutes per day.');
+  }
+
+  else if (mode === 'bar-stacked') {
+    chart.config.type = 'bar';
+    chart.options.scales.x.stacked = true;
+    chart.options.scales.y.stacked = true;
+    chart.data.datasets[3].hidden = true;
+
+    typeBtn.textContent = 'Switch to grouped bars';
+    canvas.setAttribute('aria-label',
+      'Stacked bar chart showing total violation minutes split by acceptable, unacceptable and pending per day.');
+  }
+
+  chart.update('none');
+}
+
+// Click → cycle through modes
+if (typeBtn) {
+  typeBtn.addEventListener('click', () => {
+    const next = chartMode === 'line' ? 'bar-stacked'
+               : chartMode === 'bar-stacked' ? 'bar-grouped'
+               : 'line';
+    setChartMode(next);
+  });
+}
+
+// Initialise to line (matches your current default)
+setChartMode('line');
+
 
     function render(){
       // chart (daily aggregates)

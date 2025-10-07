@@ -14,6 +14,26 @@
 <div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">7 October 2025</dt>
   <dd class="govuk-summary-list__value">
+    Map sync reliability and first-click bug fix:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Resolved long-standing issue where the first <strong>“View on map”</strong> click after page refresh failed to load GPS data.</li>
+      <li>Introduced event-driven <code>bh:map-ready</code> mechanism to coordinate map initialisation across scripts.</li>
+      <li>Ensured deferred script loading order (<code>bh-location-init.js</code> → <code>map-overlays.js</code> → <code>gps-map.js</code> → <code>bh-loi-to-map-sync.js</code>) for predictable startup.</li>
+      <li>Removed duplicate click handlers and conflicting “Apply filters” path that cleared overlays on load.</li>
+      <li>Refactored <code>bh-loi-to-map-sync.js</code> to call <code>window.plotTrace()</code> directly once the map is ready, guaranteeing first-click plotting.</li>
+      <li>Improved focus management: closing popups by Escape or the new button restores focus to the map without scroll jumps.</li>
+      <li>Added optional debug logging (<code>DEBUG = true</code>) for tracing event flow and readiness timing.</li>
+      <li>Verified persistence of user-chosen base layer (Street/Satellite) and overlay visibility across refreshes.</li>
+      <li>Accessibility maintained: popups act as lightweight dialogs with <code>aria-modal="false"</code> and polite live-region updates.</li>
+      <li>Prototype now achieves consistent, stable map behaviour on every interaction — first click included.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">6 October 2025</dt>
+  <dd class="govuk-summary-list__value">
     Curfew tab enhancements and improved map accessibility:
     <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
       <li>Introduced Chart.js integration to visualise daily curfew violation minutes.</li>

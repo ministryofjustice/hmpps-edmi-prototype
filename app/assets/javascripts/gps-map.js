@@ -528,10 +528,32 @@ async function plotTrace(traceKey, opts = {}) {
       const ll = [pt.lat, pt.lng];
       latlngs.push(ll);
 
-      if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
-        L.circle(ll, { radius: pt.accuracy, color: '#1d70b8', weight: 1, fillOpacity: 0.1 })
-          .addTo(groups.accuracy);
-      }
+if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
+  // Add the large confidence circle (existing behaviour)
+  L.circle(ll, {
+    radius: pt.accuracy,
+    color: '#1d70b8',
+    weight: 1,
+    fillOpacity: 0.1
+  }).addTo(groups.accuracy);
+
+  // Add the small centre dot (new behaviour)
+  if (window.addConfidenceCircle) {
+    // uses the helper defined in map-overlays.js
+    window.addConfidenceCircle(pt.lat, pt.lng, pt.accuracy);
+  } else {
+    // fallback if helper not loaded
+    L.circleMarker(ll, {
+      radius: 2.5,
+      color: '#1d70b8',
+      weight: 0,
+      fillColor: '#1d70b8',
+      fillOpacity: 1,
+      interactive: false
+    }).addTo(groups.accuracy);
+  }
+}
+
 
       const marker = L.marker(ll, { title: `Point ${idx + 1}` })
         .bindTooltip(String(pt.label || idx + 1), {

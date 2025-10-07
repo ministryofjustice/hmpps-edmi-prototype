@@ -129,5 +129,18 @@
         window.map.invalidateSize();
       }
     }, 0);
+
+// --- announce readiness for other scripts (after all deferred scripts have run)
+requestAnimationFrame(() => {
+  window.BH = window.BH || {};
+  window.BH.mapReady = true;
+
+  // Newer canonical event
+  document.dispatchEvent(new CustomEvent('bh:map-ready', { detail: { when: Date.now() } }));
+
+  // Back-compat with older listeners
+  document.dispatchEvent(new CustomEvent('bh:map:ready', { detail: { when: Date.now() } }));
+});
+
   });
 })();

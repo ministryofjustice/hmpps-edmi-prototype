@@ -387,6 +387,27 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
   margin: 0;
 }
 
+/* Fix misaligned Leaflet popup close buttons */
+.leaflet-container .leaflet-popup-close-button {
+  position: absolute !important;
+  top: 4px !important;
+  right: 6px !important;
+  z-index: 1000;
+  color: #0b0c0c;
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.leaflet-container .leaflet-popup-close-button:hover,
+.leaflet-container .leaflet-popup-close-button:focus {
+  color: #1d70b8;
+  outline: 2px solid #1d70b8;
+  outline-offset: 1px;
+}
+
 
 
 /* Make the MOJ Date Picker calendar sit above the Leaflet map */

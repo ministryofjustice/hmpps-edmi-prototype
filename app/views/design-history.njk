@@ -12,21 +12,24 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
-  <dt class="govuk-summary-list__key">6 October 2025</dt>
+  <dt class="govuk-summary-list__key">7 October 2025</dt>
   <dd class="govuk-summary-list__value">
-    Curfew tab enhancements and accessible data visualisation:
+    Curfew tab enhancements and improved map accessibility:
     <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
       <li>Introduced Chart.js integration to visualise daily curfew violation minutes.</li>
       <li>Added range chooser for <strong>Last 7 days</strong>, <strong>Last 30 days</strong> and <strong>Since tag was fitted</strong> (43 days) views.</li>
-      <li>Implemented accessible graph/table toggle (“Change to accessible table view”), syncing both data sources.</li>
-      <li>Generated realistic demo data with <strong>acceptable</strong>, <strong>unacceptable</strong> and <strong>pending</strong> violation categories.</li>
-      <li>Displayed all three categories as distinct Chart.js lines with shared x-axis labels and colour-coded legend.</li>
-      <li>Created sortable GOV.UK table view listing individual violation events, colour-coded by severity (unacceptable rows in red).</li>
-      <li>Improved code structure by moving inline JavaScript to <code>/public/javascripts/curfew-charts.js</code> for maintainability.</li>
+      <li>Implemented accessible graph/table toggle (“Change to accessible table view”) with synchronised data between views.</li>
+      <li>Added duration filter (<strong>All</strong>, <strong>Over 1 min</strong>, <strong>Over 5 mins</strong>, <strong>Over 15 mins</strong>) to highlight longer or repeated curfew breaches.</li>
+      <li>Generated realistic static demo dataset (<code>/public/data/violations-bh.json</code>) with <strong>acceptable</strong>, <strong>unacceptable</strong> and <strong>pending</strong> violation categories.</li>
+      <li>Supported multiple chart types — line, grouped bar and stacked bar — for testing comprehension and user preference.</li>
+      <li>Accessible design: added live announcements for chart updates, descriptive <code>aria-label</code>s, and non-colour cues in legends and data points.</li>
+      <li>Created sortable GOV.UK table view listing individual violation events, colour-coded by severity (unacceptable rows highlighted in red).</li>
+      <li>Improved map accessibility across GPS and LOI pages: popups now use <code>role="dialog"</code> semantics, move keyboard focus correctly, and announce opens/closes via live regions.</li>
+      <li>Added a <strong>North arrow</strong> with <code>aria-label</code>, retained polite live updates for map/filter changes, and ensured polygons sit in a dedicated pane for reliable interaction.</li>
+      <li>Refactored code: moved inline scripts to <code>/public/javascripts/curfew-charts.js</code> and <code>/public/javascripts/bh-location-init.js</code> for clarity and maintainability.</li>
     </ul>
   </dd>
 </div>
-
 
 <div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">2 October 2025</dt>

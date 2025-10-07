@@ -194,8 +194,14 @@
     </div>
   </dl>
 
-  <h2 class="govuk-heading-m govuk-!-margin-top-8">Accessibility considerations</h2>
+<h2 class="govuk-heading-m govuk-!-margin-top-8">Accessibility considerations</h2>
 <ul class="govuk-list govuk-list--bullet">
+  <li><strong>Map and popup accessibility:</strong> Popups are now treated as lightweight dialogs with <code>role="dialog"</code> and <code>aria-modal="false"</code>. When a popup opens, keyboard focus moves to its heading, and focus returns to the triggering element (usually a “View” link) when it closes. Screen readers are notified via the existing <code>#map-status</code> live region (for example, “Showing details for Kings Arms on the map”).</li>
+  <li><strong>Keyboard navigation:</strong> All “View on map” links are keyboard-accessible and trigger the same popup information as clicking the map marker. Leaflet’s built-in keyboard controls remain available, but every map feature also has a non-map route (via the LOI table) for full equivalence.</li>
+  <li><strong>Map live regions:</strong> The map and filter forms use polite <code>aria-live</code> regions (<code>#map-status</code>, <code>#bh-filter-status</code>, <code>#loi-filter-status</code>) to announce updates like “Map updated — 3 locations displayed” without moving focus.</li>
+  <li><strong>Pane layering and labels:</strong> LOI polygons sit in their own <code>loi-areas</code> pane (z-index 645), so they’re easy to click or navigate with assistive tech. All markers, lines and polygons include descriptive <code>title</code> or <code>aria-label</code> text (point number, accuracy, time, coordinates).</li>
+  <li><strong>Visual aids:</strong> Added a north arrow with <code>aria-label="North arrow"</code> and clear visible contrast. Base-layer choices (Street / Satellite) persist using <code>localStorage</code> so users aren’t forced to re-select after navigation.</li>
+
   <li><strong>Chart accessibility:</strong> Canvas given <code>role="img"</code>, <code>tabindex="0"</code>, and <code>aria-describedby</code> (populated with a human-readable summary). Legend uses text labels; the “Total” series has a dashed line so we don’t rely on colour alone.</li>
   <li><strong>Live announcements:</strong> Added a polite live region to announce when the chart updates (range or duration changes) without stealing focus.</li>
   <li><strong>Equivalent data view:</strong> “Change to accessible table view” toggles a full, sortable table that mirrors the chart data (daily totals and per-event table). The toggle is a real <code>&lt;button&gt;</code> with <code>aria-controls</code> and updates its text/state.</li>
@@ -206,6 +212,7 @@
   <li><strong>Colour & contrast:</strong> Red/green is always paired with text labels; custom “warning/success” classes check out against AA for text on white. Unacceptable rows are styled across the whole row while preserving contrast.</li>
   <li><strong>Structure:</strong> Consistent GOV.UK headings, lists, and summary cards; polygon/marker popups use semantic HTML with concise labels and dates matched to the LOI table.</li>
 </ul>
+
 
 <h2 class="govuk-heading-m govuk-!-margin-top-6">Accessibility – next steps</h2>
 <ul class="govuk-list govuk-list--bullet">

@@ -56,7 +56,6 @@
 
     {# --- defaults for first-time / cleared sessions --- #}
 {% set ALL_LOI_TYPES = [
-  "approved premises",
   "betting shops",
   "places of worship",
   "police stations",
@@ -78,7 +77,6 @@
   },
   hint: { text: "Show the following locations of interest on the location activity tab" },
   items: [
-    { value: "approved premises",  text: "Approved premises",  checked: ("approved premises" in selectedTypes) },
     { value: "betting shops",     text: "Betting shops",      checked: ("betting shops" in selectedTypes) },
     { value: "places of worship", text: "Places of worship",  checked: ("places of worship" in selectedTypes) },
     { value: "police stations",   text: "Police stations",    checked: ("police stations" in selectedTypes) },

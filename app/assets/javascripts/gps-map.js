@@ -426,7 +426,7 @@ function areaPopupHTML(area, overrideDateText) {
 
   // Optional building functions panel
   const hasFunctions = Array.isArray(area.buildingFunctions) && area.buildingFunctions.length > 0;
-  const headingText  = escapeHTML(cleanText(area.notesHeading || "This building has multiple uses:"));
+  const headingText  = escapeHTML(cleanText(area.notesHeading || "Mixed-use building:"));
 
   const notes = hasFunctions ? `
     <div class="app-popup-panel" role="group" aria-labelledby="bf-title">

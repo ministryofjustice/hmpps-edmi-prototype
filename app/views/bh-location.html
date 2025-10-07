@@ -167,7 +167,6 @@
 
 {% set allTypes = [
   { value: "anywhere outside the uk", label: "Anywhere outside the UK" },
-  { value: "approved premises",       label: "Approved premises" },
   { value: "betting shops",           label: "Betting shops" },
   { value: "places of worship",       label: "Places of worship" },
   { value: "police stations",         label: "Police stations" },
@@ -589,23 +588,6 @@ if (!window.map.getPane('loi-areas')) {
   // Put polygons above lines/circles (400) but just under tooltips (650)
   pane.style.zIndex = 645;
 }
-
-
-    // North arrow
-    (function addNorthArrow() {
-      const compass = L.control({ position: 'topleft' });
-      compass.onAdd = function () {
-        const bar = L.DomUtil.create('div', 'leaflet-bar');
-        const a = L.DomUtil.create('a', '', bar);
-        a.href = '#';
-        a.title = 'North';
-        a.setAttribute('aria-label', 'North arrow');
-        a.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><polygon points="12,3 20,21 12,16 4,21" /></svg>';
-        L.DomEvent.on(a, 'click', (e) => L.DomEvent.stop(e));
-        return bar;
-      };
-      compass.addTo(window.map);
-    })();
 
     // Restore previously chosen base (Street/Satellite)
     try {

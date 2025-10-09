@@ -301,28 +301,54 @@
       announce(`Chart updated for ${headingEl.textContent.toLowerCase()}, ${minDuration===0?'all durations':`≥${minDuration} mins`}.`);
     }
 
-    function setChartMode(mode) {
-      chartMode = mode;
-      setPref('curfew.mode', mode);
-      const x = (chart.options.scales.x ||= {});
-      const y = (chart.options.scales.y ||= { beginAtZero:true, title:{display:true, text:'Minutes'} });
+    // Replace the existing setChartMode(...) with this:
+function setChartMode(mode) {
+  chartMode = mode;
+  setPref('curfew.mode', mode);
 
-      if (mode === 'line') {
-        chart.config.type = 'line';
-        x.stacked = false; y.stacked = false;
-        chart.data.datasets.forEach((ds) => { ds.borderWidth = 2; ds.pointRadius = 2; });
-        chart.data.datasets[3].hidden = false; // show Total line
-      } else {
-        chart.config.type = 'bar';
-        const stacked = (mode === 'bar-stacked');
-        x.stacked = stacked; y.stacked = stacked;
-        chart.data.datasets.forEach((ds, i) => { ds.borderWidth = 0; ds.pointRadius = 0; });
-        chart.data.datasets[3].hidden = true;  // hide Total
-      }
+  const x = (chart.options.scales.x ||= {});
+  const y = (chart.options.scales.y ||= { beginAtZero: true, title: { display: true, text: 'Minutes' } });
 
-      chart.update();
-      requestAnimationFrame(() => chart.resize());
-    }
+  if (mode === 'line') {
+    chart.config.type = 'line';
+    x.stacked = false; y.stacked = false;
+
+    chart.data.datasets.forEach((ds, i) => {
+      ds.borderWidth = 2;
+      ds.pointRadius = 2;
+      if (i < 3) ds.backgroundColor = 'transparent'; // clear bar fills
+    });
+
+    chart.data.datasets[3].hidden = false; // show "Total" line
+  } else {
+    chart.config.type = 'bar';
+    const stacked = (mode === 'bar-stacked');
+    x.stacked = stacked; y.stacked = stacked;
+
+    // Solid fills per category
+    const fills = ['#008b76', '#d4351c', '#b1b4b6']; // Acceptable, Unacceptable, Pending
+    chart.data.datasets.forEach((ds, i) => {
+      ds.borderWidth = 0;
+      ds.pointRadius = 0;
+      if (i < 3) ds.backgroundColor = fills[i];
+    });
+
+    chart.data.datasets[3].hidden = true; // hide "Total" in bar modes
+  }
+
+  // 🔁 Update the button text to describe the NEXT mode
+  if (typeBtn) {
+    const nextText =
+      (mode === 'line')        ? 'Switch to stacked bars' :
+      (mode === 'bar-stacked') ? 'Switch to grouped bars' :
+                                  'Switch to line chart';
+    typeBtn.textContent = nextText;
+  }
+
+  chart.update();
+  requestAnimationFrame(() => chart.resize());
+}
+
 
     function buildRows() {
       lastRows = buildEventRows(DATA, rangeDays, minDuration);

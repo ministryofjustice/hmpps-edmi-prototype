@@ -35,25 +35,6 @@
 </div>
 
 
-{{ mojAlert({
-  variant: "warning",
-  title: "Failure to charge battery",
-  showTitleAsHeading: true,
-  dismissible: true,
-  html: '<a href="#">View Richard&apos;s tag breaches</a>.'
-}) }}
-
-{{ mojAlert({
-  variant: "warning",
-  title: "4 locations of interest visited in the last 7 days",
-  showTitleAsHeading: true,
-  dismissible: true,
-  html: '<a href="#">View Richard&apos;s locations of interest</a>.'
-}) }}
-
-
-{%- from "moj/components/sub-navigation/macro.njk" import mojSubNavigation -%}
-
 {{ mojSubNavigation({
   label: "Sub navigation",
   items: [{

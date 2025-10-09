@@ -61,7 +61,7 @@
     <!-- LEFT HAND narrative -->
     <div class="bh-curfew-left">
       <p class="govuk-body govuk-!-margin-bottom-6">
-        Billy Hoskins was <strong>out during curfew for 31 minutes</strong> from 1.05am to 1.36am on Sunday 8 June 2025.
+        Billy Hoskins was <strong>out during curfew for 31 minutes</strong> from 1:05am to 1:36am on Sunday 8 June 2025.
       </p>
 
       <p class="govuk-body govuk-!-margin-bottom-4">
@@ -113,38 +113,43 @@
 
 <h4 id="violation-heading" class="govuk-heading-s">Since tag was fitted (43 days)</h4>
 
-<div class="bh-chart-wrap govuk-!-margin-bottom-4">
-  <div class="bh-chart-header">
-    <button class="govuk-button govuk-button--secondary" id="bh-toggle-view"
-            aria-controls="bh-chart, bh-table" data-view="chart">
-      Change to accessible table view
-    </button>
-    <button class="govuk-button govuk-button--secondary" id="bh-chart-type"
-        aria-controls="bh-chart"
-        type="button">
-  Switch to stacked bars
-</button>
 
+<div id="curfew-toolbar">
+  <div class="bh-chart-wrap govuk-!-margin-bottom-4">
+    <div class="bh-chart-header">
+      <button class="govuk-button govuk-button--secondary" id="curfew-btn-toggle-view"
+              aria-controls="bh-chart, bh-table" data-view="chart">
+        Change to accessible table view
+      </button>
 
-    <p class="govuk-!-margin-bottom-0 govuk-!-font-size-16">
-      Show duration:
-      <a href="#" class="bh-duration-link" data-min="0">All</a> |
-      <a href="#" class="bh-duration-link" data-min="1">Over 1 min</a> |
-      <a href="#" class="bh-duration-link" data-min="5">Over 5 mins</a> |
-      <a href="#" class="bh-duration-link" data-min="15">Over 15 mins</a>
-    </p>
+      <button class="govuk-button govuk-button--secondary" id="curfew-btn-stacked"
+          aria-controls="bh-chart"
+          type="button">
+        Switch to stacked bars
+      </button>
+
+      <div id="curfew-duration-controls">
+        <p class="govuk-!-margin-bottom-0 govuk-!-font-size-16">
+          Show duration:
+          <a href="#" class="bh-duration-link" data-min="0">All</a> |
+          <a href="#" class="bh-duration-link" data-min="1">Over 1 min</a> |
+          <a href="#" class="bh-duration-link" data-min="5">Over 5 mins</a> |
+          <a href="#" class="bh-duration-link" data-min="15">Over 15 mins</a>
+        </p>
+      </div>
+    </div>
+  </div>
   </div>
   
 
-  <!-- Chart view -->
-  <div id="bh-chart" role="img"
+  <div id="curfew-chart-wrap" role="img"
        aria-label="Line chart showing violation minutes by day for the selected range."
        class="bh-chart-area">
-    <canvas id="violationsChart" width="100%" height="300"></canvas>
+    <canvas id="violationsChart" height="300"></canvas>
   </div>
 
   <!-- Table view (hidden by default, becomes visible when toggled) -->
-<div id="bh-table" hidden>
+<div id="curfew-table-wrap" hidden>
   <table class="govuk-table" data-module="moj-sortable-table">
     <caption class="govuk-table__caption govuk-table__caption--m" id="bh-table-caption">
       Violation events – since tag was fitted (placeholder data)
@@ -169,11 +174,12 @@
 
 </div>
 
+<p class="govuk-body govuk-!-margin-top-0">&nbsp;</p>
 
 {{ govukDetails({
   summaryText: "How these violations were calculated",
   html: "
-  <p class='govuk-body'>Violation minutes accumulate when a person on probation (PoP) violates their curfew and are recorded when they:</p>
+  <p class='govuk-body'>Violation minutes accumulate when a person on probation violates their curfew and are recorded when they:</p>
   <ul class='govuk-list govuk-list--bullet'>
     <li>arrive home after their curfew start time</li>
     <li>leave home during curfew</li>
@@ -196,10 +202,10 @@
   <li>whether they have a previous custodial sentence</li>
 </ul>
 
-<p class='govuk-body'>A person on probation (PoP) is considered as being not likely to comply with their HDC if their forecast calculates their likelihood of compliance as being less than 50%.</p>
+<p class='govuk-body'>A person on probation is considered as being not likely to comply with their HDC if their forecast calculates their likelihood of compliance as being less than 50%.</p>
 
 <h4 class="govuk-heading-s">Things you need to know about this forecast</h4>
-<p class="govuk-body">This forecast was calculated at 9.30am on Wednesday 11 June 2025.</p>
+<p class="govuk-body">This forecast was calculated at 9:30am on Wednesday 11 June 2025.</p>
 <p class="govuk-body">This forecast will be updated each day when the latest HDC data is available.</p>
 
 
@@ -354,7 +360,7 @@
   rows: [
     [
       {
-        text: "Fri 16 June 2025",
+        text: "Friday 16 June 2025",
         attributes: {
           "data-sort-value": "2025-06-16"
         }
@@ -414,8 +420,11 @@
 {# Chart.js #}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 
+<script src="/public/javascripts/curfew-time-normaliser.js" defer></script>
+
 {# Your controller that builds/updates the chart and heading #}
 <script src="/public/javascripts/curfew-charts.js" defer></script>
 
+<script src="/public/javascripts/curfew-view-toggle.js" defer></script>
 
 {% endblock %}

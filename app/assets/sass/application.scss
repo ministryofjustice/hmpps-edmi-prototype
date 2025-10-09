@@ -766,41 +766,74 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
 }
 
 /* --- CURFEW GRAPHS AND TABLES --- */
-.bh-chart-wrap .bh-chart-area { min-height: 320px; }
+
+/* Toolbar row: buttons on left, duration links flush-right */
 .bh-chart-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;          /* wrap cleanly on small screens */
   margin-bottom: 8px;
 }
-@media (max-width: 640px) {
-  .bh-chart-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+/* Duration controls pinned to the right edge */
+#curfew-duration-controls {
+  margin-left: auto;        /* pushes this block to the far right */
+  display: flex;
+  align-items: center;
+}
+#curfew-duration-controls p { margin: 0; }
+
+/* Active filter styling (supports both aria-current and legacy .is-active) */
+.bh-duration-link[aria-current="true"],
+.bh-duration-link.is-active {
+  color: #0b0c0c;           /* GOV.UK black */
+  text-decoration: none;
+  pointer-events: none;
+  cursor: default;
+  font-weight: 700;
 }
 
-/* optional emphasis for unacceptable rows */
+/* Chart sizing: wrapper + canvas agree on height */
+#curfew-chart-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+}
+#curfew-chart-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 300px !important;
+}
+
+/* If you also use .bh-chart-area elsewhere, keep it consistent with 300px */
+.bh-chart-wrap .bh-chart-area { min-height: 300px; }
+
+/* Hide the graph-type button when JS requests it (table view) */
+.bh-hide { display: none !important; }
+
+/* Table emphasis for unacceptable rows */
 #bh-events-body tr td:last-child[data-sort-value="unacceptable"] {
   font-weight: 700;
-  color: #d4351c; /* GOV.UK red */
+  color: #d4351c;           /* GOV.UK red */
 }
-
-/* Highlight entire table row when status = Unacceptable */
 #bh-events-body tr[data-status="unacceptable"] {
-  color: #d4351c; /* GOV.UK red */
+  color: #d4351c;
   font-weight: 700;
-  background-color: #fef7f7; /* very pale red background */
+  background-color: #fef7f7; /* pale red */
 }
-
-/* Optional: a bit of contrast on hover/focus for accessibility */
 #bh-events-body tr[data-status="unacceptable"]:hover,
 #bh-events-body tr[data-status="unacceptable"]:focus-within {
-  background-color: #f6d7d2; /* GOV.UK “highlight” red tint */
+  background-color: #f6d7d2; /* stronger tint on hover/focus */
 }
 
-.bh-duration-link.is-active {
-  color: #0b0c0c;          /* GOV.UK black text colour */
-  text-decoration: none;   /* Remove underline */
-  pointer-events: none;    /* Disable link click */
-  cursor: default;         /* Keep it feeling static */
-  font-weight: bold;       /* Optional for emphasis */
+/* Stack toolbar neatly on small screens */
+@media (max-width: 640px) {
+  .bh-chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  /* when stacked vertically, let the right-pinned block behave normally */
+  #curfew-duration-controls { margin-left: 0; }
 }

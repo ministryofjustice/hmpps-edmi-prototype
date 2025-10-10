@@ -20,7 +20,7 @@
   // ---------- per-page config with sensible defaults ----------
   const CFG = Object.assign({
     DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
-    SCENARIOS_URL:   '/public/data/gps-traces-bh-demo.json',
+    SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-oct.json',
     DEFAULT_SCENARIO_KEY: 'bh_20250903'
   }, (window.GPS_CONFIG || {}));
 

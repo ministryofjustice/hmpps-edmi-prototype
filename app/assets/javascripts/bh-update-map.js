@@ -7,7 +7,7 @@
   function getStr(el) { return (el && typeof el.value === 'string') ? el.value.trim() : ''; }
 
   // Expect gps-map.js to have set this:
-  const SCENARIOS_URL = window.__BH_SCENARIOS_URL || '/public/data/gps-traces-bh-demo.json';
+  const SCENARIOS_URL = window.__BH_SCENARIOS_URL || '/public/data/gps-traces-bh-demo-oct.json';
 
   // Parse dd/mm/yyyy -> { y, m, d } (numbers) and to iso yyyy-mm-dd
   function parseDMY(str) {

@@ -96,29 +96,24 @@
   }
 
   // ---------- UI helpers ----------
-  // Small heading above the toolbar (govuk-heading-s)
 // Small heading above the toolbar (govuk-heading-s)
-// Writes a full sentence based on view + range + duration.
 function setHeading(el, view, rangeDays, total, min) {
   if (!el) return;
 
-  // Range phrase
   const rangePhrase =
     (rangeDays === 7)  ? 'for the last 7 days' :
     (rangeDays === 30) ? 'for the last 30 days' :
                          `since tag was fitted (${total} days)`;
 
-  // Duration phrase (kept in parentheses to match previous style)
   const durPhrase =
     (Number(min) === 0) ? '(All durations)' :
-    (Number(min) === 1) ? '(Over 1 min)' :
-    (Number(min) === 5) ? '(Over 5 mins)' : '(Over 15 mins)';
+    (Number(min) === 1) ? '(Over 1 min)'   :
+    (Number(min) === 5) ? '(Over 5 mins)'  : '(Over 15 mins)';
 
-  // View word
   const viewWord = (view === 'table') ? 'Table' : 'Graph';
-
   el.textContent = `${viewWord} showing curfew data ${rangePhrase} ${durPhrase}`;
 }
+
 
 
   function setDurationUI(links, min) {
@@ -254,8 +249,8 @@ function setHeading(el, view, rangeDays, total, min) {
         (rangeDays === 30) ? 'Last 30 days' :
           `Since tag was fitted (${dataset.totalDays} days)`;
       const dur = (minDuration === 0) ? 'All durations' :
-        (minDuration === 1) ? '≥1 min' :
-          (minDuration === 5) ? '≥5 mins' : '≥15 mins';
+        (minDuration === 1) ? 'Over 1 min' :
+          (minDuration === 5) ? 'Over 5 mins' : 'Over 15 mins';
       captionEl.textContent = `Violation events – ${label} (${dur}) • ${rows.length} results`;
     }
 

@@ -12,6 +12,27 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">10 October 2025</dt>
+  <dd class="govuk-summary-list__value">
+    Curfew charts & accessible table refinements:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li><strong>Single source of truth:</strong> chart and table now both read from <code>/public/data/violations-bh.json</code> with a safe synthetic fallback.</li>
+      <li><strong>Consistent time formatting:</strong> colons instead of periods and no “:00” on exact hours (for example, “8pm”).</li>
+      <li><strong>View toggle, rock-solid:</strong> chart/table switch works reliably; the graph-type button hides in table view and reappears in chart view.</li>
+      <li><strong>Remember my choices:</strong> versioned prefs (<code>curfew:v2</code>) for view, range (7/30/total), duration (All/Over 1/5/15), and chart mode (line/stacked/grouped).</li>
+      <li><strong>Chart polish:</strong> restored bar colours; fixed Chart.js recursion errors; mode button label now always describes the <em>next</em> mode; line thickness is configurable and persists across mode switches.</li>
+      <li><strong>First-load defaults:</strong> lands on “Line • Last 7 days” even if controls are initially hidden.</li>
+      <li><strong>Toolbar layout:</strong> “Show duration” links are right-aligned and vertically centred; duplicate CSS removed; heights standardised.</li>
+      <li><strong>Accessible by default:</strong> polite live-region announcements for chart/table updates; table caption kept for screen readers but visually hidden.</li>
+      <li><strong>Clear, compact heading:</strong> small sentence above controls reflects view, range, and duration (for example, “Graph showing curfew data for the last 7 days (All durations)”).</li>
+      <li><strong>Table hardening:</strong> numeric coercion for minutes; robust date parsing; pagination maintained; within each date, events sort by time (latest first).</li>
+      <li><strong>Demo date window refreshed:</strong> scenario keys and timestamps shifted from 25–29 Aug to 9–13 Oct in <code>/public/data/gps-traces-bh-demo.json</code> for quicker testing.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">7 October 2025</dt>
   <dd class="govuk-summary-list__value">
     Map sync reliability and first-click bug fix:

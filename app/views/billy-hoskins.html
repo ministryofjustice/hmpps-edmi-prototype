@@ -26,7 +26,7 @@
         <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
         Date of birth: 18 Nov 1995 (Age 29)
         <span class="govuk-!-padding-left-3 govuk-!-padding-right-3 hide-mobile">|</span>
-        <a href="https://www.figma.com/proto/vlCrUVrP6fuq59QzUg9lyy/GPS-Alpha-2.0?page-id=6722%3A15258&node-id=6936-6250&p=f&viewport=-4249%2C-4220%2C0.21&t=gk748NC1vQvFiqZc-8&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=6722%3A16450&hide-ui=1" style="color:#505a5f; text-decoration: none;">Sentence: CJA - Community Order</a>
+        <a href="https://www.figma.com/proto/vlCrUVrP6fuq59QzUg9lyy/GPS-Alpha-2.0?page-id=6722%3A15258&node-id=6936-6250&p=f&viewport=-4249%2C-4220%2C0.21&t=gk748NC1vQvFiqZc-8&scaling=min-zoom&content-scaling=fixed&starting-point-node-id=6722%3A16450&hide-ui=1" style="color:#505a5f; text-decoration: none;">Sentence: Community Order (12 months)</a>
       </span>
     <h1 class="govuk-heading-l govuk-!-margin-bottom-4">
       Billy Hoskins
@@ -272,7 +272,7 @@
           <span data-qa="nameLabel">Order</span>
         </dt>
         <dd class="govuk-summary-list__value">
-          <span data-qa="nameValue">CJA - Community Order</span>
+          <span data-qa="nameValue">Community Order (12 months)</span>
         </dd>
       </div>
 
@@ -282,13 +282,10 @@
           <span class="govuk-!-font-weight-regular secondary-text">People on probation may have other licence conditions not related to EM. <a href="#">View all licence conditions</a></span>          
         </dt>
         <dd class="govuk-summary-list__value">
-            <h4 class="govuk-!-margin-bottom-0">Trail Monitoring (GPS)</h4>
-            
-Allow person(s) as designated by your supervising officer to install an electronic monitoring tag on you and access to install any associated equipment in your property, and for the purpose of ensuring that equipment is functioning correctly. You must not damage or tamper with these devices and must ensure that the tag is charged. You must report to your supervising officer immediately if the tag or the associated equipment are not working correctly. This will be for the purpose of monitoring your electronic whereabouts (trail monitoring only) licence condition unless otherwise authorised by your supervising officer.
-
-<h4 class="govuk-!-margin-bottom-0">Home detention curfew (HDC)</h4>
-            
-Confine yourself to an address approved by your supervising officer between the hours of <strong>9pm and 7am, Monday to Friday</strong> and <strong>7pm and 7am, Saturday to Sunday</strong> unless otherwise authorised by your supervising officer. This condition will be reviewed by your supervising officer on a monthly basis and may be amended or removed if it is felt that the level of risk that you present has reduced appropriately.
+          <h4 class="govuk-!-margin-bottom-0">Home detention curfew (HDC)</h4>
+          Confine yourself to an address approved by your supervising officer between the hours of <strong>9pm and 7am, Monday to Friday</strong> and <strong>7pm and 7am, Saturday to Sunday</strong> unless otherwise authorised by your supervising officer. This condition will be reviewed by your supervising officer on a monthly basis and may be amended or removed if it is felt that the level of risk that you present has reduced appropriately.
+          <h4 class="govuk-!-margin-bottom-0">Trail Monitoring (GPS)</h4>
+          Allow person(s) as designated by your supervising officer to install an electronic monitoring tag on you and access to install any associated equipment in your property, and for the purpose of ensuring that equipment is functioning correctly. You must not damage or tamper with these devices and must ensure that the tag is charged. You must report to your supervising officer immediately if the tag or the associated equipment are not working correctly. This will be for the purpose of monitoring your electronic whereabouts (trail monitoring only) licence condition unless otherwise authorised by your supervising officer.
         </dd>
       </div>
     </dl>
@@ -391,6 +388,22 @@ Confine yourself to an address approved by your supervising officer between the 
       },
       value: {
         text: "On"
+      }
+    },
+    {
+      key: {
+        text: "Curfew: Monday to Friday"
+      },
+      value: {
+        text: "9pm to 7am"
+      }
+    },
+    {
+      key: {
+        text: "Curfew: Saturday to Sunday"
+      },
+      value: {
+        text: "7pm to 7am"
       }
     }
   ]

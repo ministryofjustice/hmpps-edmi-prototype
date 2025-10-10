@@ -96,12 +96,31 @@
   }
 
   // ---------- UI helpers ----------
-  function setHeading(el, n, total) {
-    if (!el) return;
-    el.textContent = (n === 7) ? 'Last 7 days'
-      : (n === 30) ? 'Last 30 days'
-        : `Since tag was fitted (${total} days)`;
-  }
+  // Small heading above the toolbar (govuk-heading-s)
+// Small heading above the toolbar (govuk-heading-s)
+// Writes a full sentence based on view + range + duration.
+function setHeading(el, view, rangeDays, total, min) {
+  if (!el) return;
+
+  // Range phrase
+  const rangePhrase =
+    (rangeDays === 7)  ? 'for the last 7 days' :
+    (rangeDays === 30) ? 'for the last 30 days' :
+                         `since tag was fitted (${total} days)`;
+
+  // Duration phrase (kept in parentheses to match previous style)
+  const durPhrase =
+    (Number(min) === 0) ? '(All durations)' :
+    (Number(min) === 1) ? '(Over 1 min)' :
+    (Number(min) === 5) ? '(Over 5 mins)' : '(Over 15 mins)';
+
+  // View word
+  const viewWord = (view === 'table') ? 'Table' : 'Graph';
+
+  el.textContent = `${viewWord} showing curfew data ${rangePhrase} ${durPhrase}`;
+}
+
+
   function setDurationUI(links, min) {
     links.forEach(a => {
       if (a.dataset.min === String(min)) a.setAttribute('aria-current', 'true');
@@ -130,43 +149,52 @@
   const PAGE_SIZE = 20;
 
   function buildEventRows(dataset, rangeDays, minDuration) {
-    const df = new Intl.DateTimeFormat('en-GB', {
-      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
-    });
+  const pad2 = (n)=>String(n).padStart(2,'0');
+  const df = new Intl.DateTimeFormat('en-GB', {
+    weekday:'long', day:'2-digit', month:'long', year:'numeric'
+  });
 
-    const rows = [];
-    const slice = (dataset.days || []).slice(-rangeDays);
+  const rows = [];
+  const slice = (dataset.days || []).slice(-rangeDays); // oldest → newest
 
-    for (const d of slice) {
-      const [y, m, dd] = (d.date || '').split('-').map(Number);
-      const pretty = df.format(new Date(y || 1970, (m || 1) - 1, dd || 1));
+  // helper: minutes from midnight
+  const tMin = (H, M) => (Number(H) || 0) * 60 + (Number(M) || 0);
 
-      for (const ev of (d.events || [])) {
-        const mins = Number(ev.minutes);
-        if (!Number.isFinite(mins) || mins < (Number(minDuration) || 0)) continue;
+  for (const d of slice) {
+    const [y,m,dd] = (d.date || '').split('-').map(Number);
+    const pretty = df.format(new Date(y || 1970, (m || 1) - 1, dd || 1));
 
-        const end = addMinutes(ev.startHH, ev.startMM, mins);
-        const startStr = fmtTime(ev.startHH, ev.startMM);
-        const endStr = fmtTime(end.hh, end.mm);
-        const durStr = mins === 1 ? '1 min' : `${mins} mins`;
-        const typeText = ev.type === 'unacceptable' ? 'Out past curfew'
-          : ev.type === 'acceptable' ? 'Return home late'
-            : 'Pending classification';
-        const statusText = ev.type ? (ev.type.charAt(0).toUpperCase() + ev.type.slice(1)) : 'Pending';
+    // 1) filter by duration, 2) sort by start time (earliest → latest)
+    const dayEvents = (d.events || [])
+      .filter(ev => Number(ev.minutes) >= (Number(minDuration) || 0))
+      .slice()
+      .sort((a, b) => tMin(b.startHH, b.startMM) - tMin(a.startHH, a.startMM));
 
-        rows.push(`
-          <tr class="govuk-table__row" data-status="${ev.type || 'pending'}">
-            <td class="govuk-table__cell" data-sort-value="${d.date || ''}">${pretty}</td>
-            <td class="govuk-table__cell" data-sort-value="${pad2(ev.startHH)}${pad2(ev.startMM)}">${startStr} to ${endStr}</td>
-            <td class="govuk-table__cell" data-sort-value="${mins}">${durStr}</td>
-            <td class="govuk-table__cell">${typeText}</td>
-            <td class="govuk-table__cell" data-sort-value="${ev.type || 'pending'}">${statusText}</td>
-          </tr>
-        `);
-      }
+    for (const ev of dayEvents) {
+      const mins = Number(ev.minutes);
+      const end  = addMinutes(ev.startHH, ev.startMM, mins);
+      const startStr = fmtTime(ev.startHH, ev.startMM);
+      const endStr   = fmtTime(end.hh, end.mm);
+      const durStr   = mins === 1 ? '1 min' : `${mins} mins`;
+      const typeText = ev.type === 'unacceptable' ? 'Out past curfew'
+                    : ev.type === 'acceptable'   ? 'Return home late'
+                    : 'Pending classification';
+      const statusText = ev.type ? (ev.type.charAt(0).toUpperCase() + ev.type.slice(1)) : 'Pending';
+
+      rows.push(`
+        <tr class="govuk-table__row" data-status="${ev.type || 'pending'}">
+          <td class="govuk-table__cell" data-sort-value="${d.date || ''}">${pretty}</td>
+          <td class="govuk-table__cell" data-sort-value="${pad2(ev.startHH)}${pad2(ev.startMM)}">${startStr} to ${endStr}</td>
+          <td class="govuk-table__cell" data-sort-value="${mins}">${durStr}</td>
+          <td class="govuk-table__cell">${typeText}</td>
+          <td class="govuk-table__cell" data-sort-value="${ev.type || 'pending'}">${statusText}</td>
+        </tr>
+      `);
     }
-    return rows;
   }
+  return rows;
+}
+
 
   function renderPager(pagerEl, totalPages, currentPage) {
     if (!pagerEl) return;
@@ -269,6 +297,7 @@
     const canvas = document.getElementById('violationsChart');
     const eventsBody = document.getElementById('bh-events-body');
     const captionEl = document.getElementById('bh-table-caption');
+    if (captionEl) captionEl.classList.add('govuk-visually-hidden');
     const pagerEl = document.getElementById('bh-pager');
     const typeBtn = document.getElementById('curfew-btn-stacked');
     const durationLinks = Array.from(document.querySelectorAll('.bh-duration-link')).map((a, i) => {
@@ -281,6 +310,9 @@
     window.curfewChart = chart;
 
     const DATA = window.VIOLATION_SERIES || await loadDataset();
+
+    let currentView = 'chart'; // default; will be updated by the view-toggle event
+
 
     // ------ defaults & prefs ------
     const DEFAULT_RANGE = 7; // first-load default
@@ -303,7 +335,7 @@
       chart.data.datasets[3].data = s.tot;
       chart.update('none');
 
-      setHeading(headingEl, rangeDays, DATA.totalDays);
+      setHeading(headingEl, currentView, rangeDays, DATA.totalDays, minDuration);
       setDurationUI(durationLinks, minDuration);
       announce(`Chart updated for ${headingEl.textContent.toLowerCase()}, ${minDuration===0?'all durations':`≥${minDuration} mins`}.`);
     }
@@ -366,6 +398,12 @@
     }
     window.renderCurfewTableFromCurrent = renderCurfewTableFromCurrent;
     document.addEventListener('bh:curfew:request-table', renderCurfewTableFromCurrent);
+
+    document.addEventListener('bh:curfew:view-changed', (e) => {
+      currentView = (e?.detail?.view === 'table') ? 'table' : 'chart';
+      setHeading(headingEl, currentView, rangeDays, DATA.totalDays, minDuration);
+    });
+
 
     // interactions
     if (pagerEl) {

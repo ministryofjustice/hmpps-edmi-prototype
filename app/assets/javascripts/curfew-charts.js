@@ -1,4 +1,4 @@
-// /public/javascripts/curfew-charts.js
+// /public/javascripts/curfew-charts.js  (versioned keys, default 7 days)
 (function () {
   'use strict';
 
@@ -10,6 +10,13 @@
   }
   const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
   const pad2 = (n) => String(n).padStart(2, '0');
+
+  // storage helpers (versioned keys to reset old prefs)
+  const STORAGE_VERSION = 'v2';
+  const LS = window.localStorage || null;
+  const key = (s) => `curfew:${STORAGE_VERSION}:${s}`;
+  const getPref = (k, d) => { try { const v = LS && LS.getItem(k); return (v === null || v === undefined) ? d : v; } catch { return d; } };
+  const setPref = (k, v) => { try { LS && LS.setItem(k, v); } catch { } };
 
   // time formatting (table generator uses dots; UI normaliser fixes display)
   const to12h = (h) => ({ h: ((h + 11) % 12) + 1, suf: h < 12 ? 'am' : 'pm' });
@@ -250,9 +257,7 @@
           x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
           y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } 
         },
-        plugins: {
-          legend: { position: 'top' }
-        }
+        plugins: { legend: { position: 'top' } }
       }
     });
   }
@@ -271,22 +276,24 @@
       return a;
     });
 
-    const LS = window.localStorage || null;
-    const getPref = (k,d)=>{ try{ return (LS && LS.getItem(k)) || d; }catch(_){ return d; } };
-    const setPref = (k,v)=>{ try{ LS && LS.setItem(k, v); }catch(_){ } };
-
     const chart = ensureChart(canvas);
     if (!chart) { console.warn('[curfew] Chart not available'); return; }
     window.curfewChart = chart;
 
     const DATA = window.VIOLATION_SERIES || await loadDataset();
 
-    let rangeDays   = Number(getPref('curfew.rangeDays', DATA.totalDays || 43));
-    let minDuration = Number(getPref('curfew.durationMin', 0));
-    let currentPage = 1;
-    let lastRows    = [];
-    let chartMode   = getPref('curfew.mode','line');
+    // ------ defaults & prefs ------
+    const DEFAULT_RANGE = 7; // first-load default
+    let rangeDays = Number(getPref(key('rangeDays'), DEFAULT_RANGE));
+    if (!Number.isFinite(rangeDays) || rangeDays <= 0) rangeDays = DEFAULT_RANGE;
+    rangeDays = Math.min(rangeDays, DATA.totalDays || rangeDays);
 
+    let minDuration = Number(getPref(key('durationMin'), 0));
+    if (!Number.isFinite(minDuration) || minDuration < 0) minDuration = 0;
+
+    let chartMode = getPref(key('mode'), 'line');
+
+    // ------ render helpers ------
     function renderChartAndUI() {
       const s = buildSeries(DATA, rangeDays, minDuration);
       chart.data.labels = s.labels;
@@ -301,64 +308,58 @@
       announce(`Chart updated for ${headingEl.textContent.toLowerCase()}, ${minDuration===0?'all durations':`≥${minDuration} mins`}.`);
     }
 
-    // Replace the existing setChartMode(...) with this:
-function setChartMode(mode) {
-  chartMode = mode;
-  setPref('curfew.mode', mode);
+    function setChartMode(mode) {
+      chartMode = mode;
+      setPref(key('mode'), mode);
+      const x = (chart.options.scales.x ||= {});
+      const y = (chart.options.scales.y ||= { beginAtZero:true, title:{display:true, text:'Minutes'} });
 
-  const x = (chart.options.scales.x ||= {});
-  const y = (chart.options.scales.y ||= { beginAtZero: true, title: { display: true, text: 'Minutes' } });
+      if (mode === 'line') {
+        chart.config.type = 'line';
+        x.stacked = false; y.stacked = false;
+        
+        const LINE_BORDER_WIDTH  = 4; // thickness for Acceptable/Unacceptable/Pending
+        const TOTAL_BORDER_WIDTH = 3; // thickness for the dashed "Total" line
 
-  if (mode === 'line') {
-    chart.config.type = 'line';
-    x.stacked = false; y.stacked = false;
+        chart.data.datasets.forEach((ds, i) => {
+          ds.borderWidth = (i === 3 ? TOTAL_BORDER_WIDTH : LINE_BORDER_WIDTH);
+          ds.pointRadius = 2;
+          if (i < 3) ds.backgroundColor = 'transparent';
+        });
 
-    chart.data.datasets.forEach((ds, i) => {
-      ds.borderWidth = 2;
-      ds.pointRadius = 2;
-      if (i < 3) ds.backgroundColor = 'transparent'; // clear bar fills
-    });
+        chart.data.datasets[3].hidden = false; // show Total line
+      } else {
+        chart.config.type = 'bar';
+        const stacked = (mode === 'bar-stacked');
+        x.stacked = stacked; y.stacked = stacked;
+        const fills = ['#008b76', '#d4351c', '#b1b4b6'];
+        chart.data.datasets.forEach((ds, i) => {
+          ds.borderWidth = 0; ds.pointRadius = 0;
+          if (i < 3) ds.backgroundColor = fills[i];
+        });
+        chart.data.datasets[3].hidden = true;  // hide Total
+      }
 
-    chart.data.datasets[3].hidden = false; // show "Total" line
-  } else {
-    chart.config.type = 'bar';
-    const stacked = (mode === 'bar-stacked');
-    x.stacked = stacked; y.stacked = stacked;
+      // update button label for the NEXT mode
+      const typeBtn = document.getElementById('curfew-btn-stacked');
+      if (typeBtn) {
+        const nextText =
+          (mode === 'line')        ? 'Switch to stacked bars' :
+          (mode === 'bar-stacked') ? 'Switch to grouped bars' :
+                                      'Switch to line chart';
+        typeBtn.textContent = nextText;
+      }
 
-    // Solid fills per category
-    const fills = ['#008b76', '#d4351c', '#b1b4b6']; // Acceptable, Unacceptable, Pending
-    chart.data.datasets.forEach((ds, i) => {
-      ds.borderWidth = 0;
-      ds.pointRadius = 0;
-      if (i < 3) ds.backgroundColor = fills[i];
-    });
-
-    chart.data.datasets[3].hidden = true; // hide "Total" in bar modes
-  }
-
-  // 🔁 Update the button text to describe the NEXT mode
-  if (typeBtn) {
-    const nextText =
-      (mode === 'line')        ? 'Switch to stacked bars' :
-      (mode === 'bar-stacked') ? 'Switch to grouped bars' :
-                                  'Switch to line chart';
-    typeBtn.textContent = nextText;
-  }
-
-  chart.update();
-  requestAnimationFrame(() => chart.resize());
-}
-
-
-    function buildRows() {
-      lastRows = buildEventRows(DATA, rangeDays, minDuration);
-      return lastRows;
+      chart.update();
+      requestAnimationFrame(() => chart.resize());
     }
 
+    // table rendering (called when view-toggle asks for it)
+    function buildRows() { return buildEventRows(DATA, rangeDays, minDuration); }
     function renderCurfewTableFromCurrent() {
       if (!eventsBody || !captionEl || !pagerEl) return;
       const rows = buildRows();
-      currentPage = 1;
+      const currentPage = 1;
       renderEventTablePage(eventsBody, captionEl, pagerEl, rows, currentPage, DATA, rangeDays, minDuration);
       if (window.TimeFormat?.normaliseCurfewTimesNow) window.TimeFormat.normaliseCurfewTimesNow();
       announce(`Table updated for ${headingEl.textContent.toLowerCase()}, ${minDuration===0?'all durations':`≥${minDuration} mins`}.`);
@@ -366,57 +367,54 @@ function setChartMode(mode) {
     window.renderCurfewTableFromCurrent = renderCurfewTableFromCurrent;
     document.addEventListener('bh:curfew:request-table', renderCurfewTableFromCurrent);
 
+    // interactions
     if (pagerEl) {
       pagerEl.addEventListener('click', (e) => {
         const a = e.target.closest('a[data-page]'); if (!a) return;
         e.preventDefault();
-        currentPage = Number(a.dataset.page) || 1;
-        const rows = lastRows.length ? lastRows : buildRows();
-        renderEventTablePage(eventsBody, captionEl, pagerEl, rows, currentPage, DATA, rangeDays, minDuration);
+        const page = Number(a.dataset.page) || 1;
+        const rows = buildRows();
+        renderEventTablePage(eventsBody, captionEl, pagerEl, rows, page, DATA, rangeDays, minDuration);
         document.getElementById('curfew-table-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
-
     if (chooserEl) {
       chooserEl.addEventListener('click', (e) => {
         const a = e.target.closest('a[data-range]'); if (!a) return;
         e.preventDefault();
         rangeDays = Number(a.dataset.range) || DATA.totalDays;
-        setPref('curfew.rangeDays', String(rangeDays));
-        currentPage = 1;
+        setPref(key('rangeDays'), String(rangeDays));
+        const rowsOpen = !document.getElementById('curfew-table-wrap')?.hasAttribute('hidden');
         renderChartAndUI();
-        if (!document.getElementById('curfew-table-wrap')?.hidden) {
-          renderCurfewTableFromCurrent();
-        }
+        if (rowsOpen) renderCurfewTableFromCurrent();
         const anchor = document.querySelector('h3.govuk-heading-m');
         if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
-
     durationLinks.forEach(a => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
         minDuration = Number(a.dataset.min) || 0;
-        setPref('curfew.durationMin', String(minDuration));
-        currentPage = 1;
+        setPref(key('durationMin'), String(minDuration));
+        const rowsOpen = !document.getElementById('curfew-table-wrap')?.hasAttribute('hidden');
         renderChartAndUI();
-        if (!document.getElementById('curfew-table-wrap')?.hidden) {
-          renderCurfewTableFromCurrent();
-        }
+        if (rowsOpen) renderCurfewTableFromCurrent();
       });
     });
-
-    if (typeBtn) {
-      typeBtn.addEventListener('click', () => {
+    const typeBtnEl = document.getElementById('curfew-btn-stacked');
+    if (typeBtnEl) {
+      typeBtnEl.addEventListener('click', () => {
         const next = chartMode === 'line' ? 'bar-stacked'
           : chartMode === 'bar-stacked' ? 'bar-grouped'
           : 'line';
         setChartMode(next);
       });
-      setChartMode(chartMode); // apply saved mode on load
     }
 
+    // ---- first paint ----
+    setChartMode(chartMode || 'line'); // apply saved mode or line
     renderChartAndUI();
+
     window.addEventListener('load', () => { chart.resize(); });
     document.addEventListener('bh:curfew:view-changed', (e) => {
       if (e?.detail?.view === 'chart') requestAnimationFrame(() => chart.resize());

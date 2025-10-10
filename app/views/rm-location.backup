@@ -45,8 +45,8 @@
     href: "",
     active: true
   }, {
-    text: "Case notes",
-    href: "rm-case-notes-ems"
+    text: "Tag management",
+    href: ""
   }]
 }) }}
 

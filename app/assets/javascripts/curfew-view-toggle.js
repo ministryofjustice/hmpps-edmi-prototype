@@ -1,4 +1,4 @@
-// /public/javascripts/curfew-view-toggle.js
+// /public/javascripts/curfew-view-toggle.js  (versioned keys; default 'chart')
 (function(){
   'use strict';
 
@@ -16,11 +16,12 @@
 
     if(!chartWrap || !tableWrap || !toggleBtn) return;
 
+    const STORAGE_VERSION = 'v2';
     const LS = window.localStorage || null;
-    const getPref = (k,d)=>{ try{ return (LS && LS.getItem(k)) || d; }catch(_){ return d; } };
-    const setPref = (k,v)=>{ try{ LS && LS.setItem(k, v); }catch(_){ } };
+    const key = (s)=>`curfew:${STORAGE_VERSION}:${s}`;
+    const getPref = (k,d)=>{ try{ const v = LS && LS.getItem(k); return (v===null||v===undefined)?d:v; }catch(_){ return d; } };
+    const setPref = (k,v)=>{ try{ LS && LS.setItem(k,v); }catch(_){ } };
 
-    // Apply initial view from localStorage (default: chart)
     function applyView(view){
       const showChart = (view !== 'table');
       if(showChart){
@@ -37,15 +38,14 @@
         toggleBtn.setAttribute('data-view','table');
         toggleBtn.setAttribute('aria-controls','curfew-table-wrap');
         stackedBtn && stackedBtn.classList.add('bh-hide');
-        // Ask the charts controller to (re)render the table if needed
         document.dispatchEvent(new CustomEvent('bh:curfew:request-table'));
       }
-      // Announce to other scripts (e.g., to nudge chart resize on return)
       document.dispatchEvent(new CustomEvent('bh:curfew:view-changed', { detail:{ view: showChart ? 'chart' : 'table' } }));
-      setPref('curfew.view', showChart ? 'chart' : 'table');
+      setPref(key('view'), showChart ? 'chart' : 'table');
     }
 
-    applyView(getPref('curfew.view', 'chart'));
+    // default to 'chart' on first load for v2 keys
+    applyView(getPref(key('view'), 'chart'));
 
     toggleBtn.addEventListener('click', function(){
       const goingTo = (toggleBtn.getAttribute('data-view') === 'chart') ? 'table' : 'chart';

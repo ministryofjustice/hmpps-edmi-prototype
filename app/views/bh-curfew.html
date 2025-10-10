@@ -53,13 +53,9 @@
   }]
 }) }}
 
-<h2 class="govuk-heading-m" id="map-header">Curfew activity</h2>
-
-<section class="bh-curfew-overview govuk-!-margin-bottom-7">
-  <div class="bh-curfew-grid govuk-width-container">
-
-    <!-- LEFT HAND narrative -->
-    <div class="bh-curfew-left">
+  <div class="govuk-width-container">
+      <h2 class="govuk-heading-m" id="map-header">Curfew activity</h2>
+      <h3 class="govuk-heading-s" id="map-header">Summary</h3>
       <p class="govuk-body govuk-!-margin-bottom-6">
         Billy Hoskins was <strong>out during curfew for 31 minutes</strong> from 1:05am to 1:36am on Sunday 8 June 2025.
       </p>
@@ -73,14 +69,40 @@
         They are now 20 minutes away from breaching their first threshold.
       </p>
 
-      {{ govukInsetText({
-        html: "<a href='#atvs'>View Billy’s accumulated time violations (ATV)</a>"
-      }) }}
+      <h3 class="govuk-heading-s" id="atvs">Accumulated time violations (ATVs)</h3>
+      <p class="govuk-body">
+        Billy has built up <strong>100 minutes</strong> in violations since their HDC curfew started on
+        <strong>Wednesday 12 March 2025</strong>.
+      </p>
+      <p class="govuk-body">These are known as accumulated time violations (ATV).</p>
+      <p class="govuk-body">Only unacceptable violations are included in Billy’s ATV.</p>
+    </div>
+
+
+<section class="bh-curfew-overview govuk-!-margin-bottom-7">
+  <div class="bh-curfew-grid govuk-width-container">
+
+    <!-- LEFT HAND narrative -->
+    <div class="bh-curfew-left">
+      <h3 class="govuk-heading-m">Forecast</h3>
+
+<p class='govuk-body'>Billy Hoskins is not likely to comply with their home detention curfew (HDC) over the next 14 days.</p>
+
+<h4 class="govuk-heading-s">How this forecast was calculated</h4>
+
+<p class='govuk-body'>This forecast uses the following 3 variables to produce Billy’s likelihood of compliance with their HDC:</p>
+<ul class='govuk-list govuk-list--bullet'>
+  <li>their number of violation minutes over the last 7 days</li>
+  <li>their percentage of total days under HDC with a violation</li>
+  <li>whether they have a previous custodial sentence</li>
+</ul>
+
+<p class='govuk-body'>A person on probation is considered as being not likely to comply with their HDC if their forecast calculates their likelihood of compliance as being less than 50%.</p>
     </div>
 
     <!-- RIGHT: the forecast card -->
     <aside class="bh-forecast-card" aria-labelledby="forecast-heading">
-      <h2 id="forecast-heading" class="govuk-heading-m govuk-!-margin-bottom-2">Forecast</h2>
+      <h2 id="forecast-heading" class="govuk-heading-s govuk-!-margin-bottom-2">Forecast summary</h2>
 
       <span class="bh-tag bh-tag--danger-outline govuk-!-margin-bottom-3" aria-label="Not likely">
         NOT LIKELY
@@ -91,13 +113,17 @@
         <strong>less than 50%</strong>
       </p>
 
-      <p class="govuk-hint govuk-!-margin-bottom-0 govuk-!-font-size-16">
-        Forecasts are updated daily when the latest HDC data is available
+      <p class="govuk-hint govuk-!-margin-bottom-10 govuk-!-font-size-16">
+        This forecast was calculated at 9:30am on Tuesday 14 October 2025.</p>
+      <p class="govuk-hint govuk-!-margin-bottom-10 govuk-!-font-size-16">
+         This forecast will be updated each day when the latest HDC data is available.
       </p>
     </aside>
 
   </div>
 </section>
+
+
 
 <h3 id="violation-minutes" class="govuk-heading-m">Violation minutes</h3>
 
@@ -189,62 +215,6 @@
   "
 }) }}
 
-<h3 class="govuk-heading-m">Forecast</h3>
-
-<p class='govuk-body'>Billy Hoskins is not likely to comply with their home detention curfew (HDC) over the next 14 days.</p>
-
-<h4 class="govuk-heading-s">How this forecast was calculated</h4>
-
-<p class='govuk-body'>This forecast uses the following 3 variables to produce Billy’s likelihood of compliance with their HDC:</p>
-<ul class='govuk-list govuk-list--bullet'>
-  <li>their number of violation minutes over the last 7 days</li>
-  <li>their percentage of total days under HDC with a violation</li>
-  <li>whether they have a previous custodial sentence</li>
-</ul>
-
-<p class='govuk-body'>A person on probation is considered as being not likely to comply with their HDC if their forecast calculates their likelihood of compliance as being less than 50%.</p>
-
-<h4 class="govuk-heading-s">Things you need to know about this forecast</h4>
-<p class="govuk-body">This forecast was calculated at 9:30am on Wednesday 11 June 2025.</p>
-<p class="govuk-body">This forecast will be updated each day when the latest HDC data is available.</p>
-
-
-
-
-<section class="app-summary-card govuk-!-margin-bottom-6 app-summary-card--large-title" data-qa="personalDetailsCard">
-  <header class="app-summary-card__header">
-    <h3 class="app-summary-card__title" id="atvs">Accumulated time violations (ATVs)</h3>
-  </header>
-  <div class="app-summary-card__body">
-    <div class="govuk-!-margin-bottom-6">
-      <p class="govuk-body">
-        Billy has built up <strong>100 minutes</strong> in violations since their HDC curfew started on
-        <strong>Wednesday 12 March 2025</strong>.
-      </p>
-      <p class="govuk-body">These are known as accumulated time violations (ATV).</p>
-      <p class="govuk-body">Only unacceptable violations are included in Billy’s ATV.</p>
-    </div>
-
-    <dl class="govuk-summary-list">
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
-        </dt>
-        <dd class="govuk-summary-list__value">
-        </dd>
-      </div>
-      <div class="govuk-summary-list__row">
-        <dt class="govuk-summary-list__key">
-          <span data-qa="nameLabel">Accumulated time violations (ATV)</span>
-        </dt>
-        <dd class="govuk-summary-list__value">
-          <span data-qa="nameLabel">100 mins</span>
-        </dd>
-        <dd><strong class='success-text'>No thresholds breached</strong></dd>
-      </div>
-    </dl>
-
-</div>
-</section>
 {# Chart.js #}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>
 

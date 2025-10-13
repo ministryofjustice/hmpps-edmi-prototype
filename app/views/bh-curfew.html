@@ -55,6 +55,10 @@
 
   <div class="govuk-width-container">
       <h2 class="govuk-heading-m" id="map-header">Curfew activity</h2>
+
+
+      {% call govukInsetText({ classes: "govuk-!-margin-0 guidance-panel" }) %}
+
       <h3 class="govuk-heading-s" id="map-header">Recent activity</h3>
       <p class="govuk-body">
         Billy Hoskins was <strong>out during curfew for 31 minutes</strong> from 1:05am to 1:36am on Sunday 12 October 2025.
@@ -75,8 +79,10 @@
       <p class="govuk-body">
         Recent activity includes any times that the person has been out during curfew, even where there may be a reasonable excuse.
       </p>
+      {% endcall %}
 
-      <h3 class="govuk-heading-s" id="atvs">Accumulated time violations (ATV)</h3>
+      {% call govukInsetText({ classes: "govuk-!-margin-0 guidance-panel" }) %}
+      <h3 class="govuk-heading-s govuk-!-margin-top-10" id="atvs">Accumulated time violations (ATV)</h3>
 
       <p class="govuk-body">
         Billy has built up <strong>100 violation minutes</strong> since their Home Detention Tag (HDC) was fitted on <strong>Wednesday 12 August 2025</strong>.
@@ -87,15 +93,16 @@
       <p class="govuk-body">
         Billy is now 20 minutes away from breaching their curfew conditions.
       </p>
+      {% endcall %}
     </div>
 
+<hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
 
 <section class="bh-curfew-overview govuk-!-margin-bottom-7">
   <div class="bh-curfew-grid govuk-width-container">
-
     <!-- LEFT HAND narrative -->
     <div class="bh-curfew-left">
-      <h3 class="govuk-heading-m">Curfew compliance forecast</h3>
+      <h3 class="govuk-heading-m govuk-!-margin-top-10">Curfew compliance forecast</h3>
 
 <p class='govuk-body'>Billy Hoskins is not likely to comply with their HDC over the next 14 days.</p>
 
@@ -133,6 +140,8 @@
 
   </div>
 </section>
+
+<hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
 
 <h3 id="violation-minutes" class="govuk-heading-m">Violation minutes</h3>
 

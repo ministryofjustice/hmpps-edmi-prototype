@@ -1,4 +1,6 @@
-// /public/javascripts/curfew-charts.js  (versioned keys, default 7 days)
+// /public/javascripts/curfew-charts.js
+// One source of truth for chart + table from /public/data/violations-bh.json
+// First visit defaults: Line • 7 days • All durations
 (function () {
   'use strict';
 
@@ -9,35 +11,31 @@
     } else { fn(); }
   }
   const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
-  const pad2 = (n) => String(n).padStart(2, '0');
+  const pad2  = (n) => String(n).padStart(2, '0');
 
-  // storage helpers (versioned keys to reset old prefs)
-  const STORAGE_VERSION = 'v2';
-  const LS = window.localStorage || null;
+  // ---------- storage (v3) ----------
+  const STORAGE_VERSION = 'v3';
+  const LS  = window.localStorage || null;
   const key = (s) => `curfew:${STORAGE_VERSION}:${s}`;
   const getPref = (k, d) => { try { const v = LS && LS.getItem(k); return (v === null || v === undefined) ? d : v; } catch { return d; } };
   const setPref = (k, v) => { try { LS && LS.setItem(k, v); } catch { } };
 
-  // Seed sensible defaults on true first visit (v2 keys absent)
-  function seedCurfewDefaultsOnce() {
-    const seededKey = key('seeded');
-    // if we've ever seeded v2 before, do nothing
-    if (getPref(seededKey, null) !== null) return;
-
-    // Defaults for the chart path
-    setPref(key('rangeDays'), '7');       // Last 7 days
-    setPref(key('durationMin'), '0');     // All durations
-    setPref(key('mode'), 'line');         // Line chart as default
-    setPref(seededKey, '1');              // mark as seeded
+  // seed defaults only if v3 keys don’t exist
+  function seedDefaultsOnce() {
+    if (getPref(key('seeded'), null) != null) return;
+    setPref(key('rangeDays'),   '7');     // last 7 days
+    setPref(key('durationMin'), '0');     // all durations
+    setPref(key('mode'),        'line');  // line chart
+    setPref('curfew:v3:view',   'chart'); // belt & braces if view-toggle hasn’t run yet
+    setPref(key('seeded'),      '1');
   }
 
-
-  // time formatting (table generator uses dots; UI normaliser fixes display)
+  // ---------- time helpers ----------
   const to12h = (h) => ({ h: ((h + 11) % 12) + 1, suf: h < 12 ? 'am' : 'pm' });
-  function fmtTime(hh, mm) { const { h, suf } = to12h(hh); return `${h}.${pad2(mm)}${suf}`; }
+  function fmtTime(hh, mm) { const { h, suf } = to12h(hh); return `${h}.${pad2(mm)}${suf}`; } // dots will be normalised by your normaliser
   function addMinutes(hh, mm, mins) { const t = hh * 60 + mm + mins; return { hh: Math.floor((t / 60) % 24), mm: t % 60 }; }
 
-  // ---------- synthetic fallback (only if JSON not found) ----------
+  // ---------- fallback dataset (only if fetch fails) ----------
   function skewedMinutes() { const u = Math.random(); const m = Math.round(-Math.log(1 - u) * 8); return clamp(m, 1, 217); }
   function pickType() { const u = Math.random(); if (u < 0.55) return 'pending'; if (u < 0.80) return 'unacceptable'; return 'acceptable'; }
   function buildSyntheticDataset(totalDays = 43) {
@@ -50,7 +48,6 @@
       const targetMax = busy ? 360 : 120;
       const count = clamp(Math.round((busy ? 12 : 8) + Math.random() * (busy ? 10 : 6)), 5, 20);
       const events = []; let sum = 0;
-
       for (let e = 0; e < count; e++) {
         const type = pickType(); const mins = skewedMinutes();
         if (sum + mins > targetMax) break;
@@ -67,13 +64,18 @@
     return { totalDays, days };
   }
 
-  // ---------- data loading ----------
+  // ---------- data load ----------
   async function loadDataset() {
+    const URL = '/public/data/violations-bh.json';
     try {
-      const res = await fetch('/public/data/violations-bh.json', { cache: 'no-store' });
+      const res = await fetch(`${URL}?v=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(res.statusText);
       const json = await res.json();
-      window.VIOLATION_SERIES = json; // freeze for this session
+      try {
+        const all = (json.days || []).map(d => d.date).sort();
+        if (all.length) console.info('[curfew] loaded', URL, 'range:', all[0], '→', all[all.length - 1], 'days:', all.length);
+      } catch {}
+      window.VIOLATION_SERIES = json;
       return json;
     } catch (err) {
       console.warn('[curfew] Using synthetic dataset (fetch failed):', err);
@@ -91,7 +93,7 @@
       if (!Number.isFinite(m)) continue;
       if (m >= (Number(minMinutes) || 0)) {
         const t = (ev.type === 'acceptable' || ev.type === 'unacceptable' || ev.type === 'pending') ? ev.type : 'pending';
-        o[t]  += m; o.total += m;
+        o[t] += m; o.total += m;
       }
     }
     return o;
@@ -109,35 +111,7 @@
     return { labels, acc, unacc, pend, tot };
   }
 
-  // ---------- UI helpers ----------
-// Small heading above the toolbar (govuk-heading-s)
-function setHeading(el, view, rangeDays, total, min) {
-  if (!el) return;
-
-  const rangePhrase =
-    (rangeDays === 7)  ? 'for the last 7 days' :
-    (rangeDays === 30) ? 'for the last 30 days' :
-                         `since tag was fitted (${total} days)`;
-
-  const durPhrase =
-    (Number(min) === 0) ? '(All durations)' :
-    (Number(min) === 1) ? '(Over 1 min)'   :
-    (Number(min) === 5) ? '(Over 5 mins)'  : '(Over 15 mins)';
-
-  const viewWord = (view === 'table') ? 'Table' : 'Graph';
-  el.textContent = `${viewWord} showing curfew data ${rangePhrase} ${durPhrase}`;
-}
-
-
-
-  function setDurationUI(links, min) {
-    links.forEach(a => {
-      if (a.dataset.min === String(min)) a.setAttribute('aria-current', 'true');
-      else a.removeAttribute('aria-current');
-    });
-  }
-
-  // announcements
+  // ---------- heading + a11y ----------
   function ensureLiveRegion(){
     let el = document.getElementById('curfew-status');
     if(!el){
@@ -150,14 +124,33 @@ function setHeading(el, view, rangeDays, total, min) {
     return el;
   }
   function announce(msg){
-    const live = ensureLiveRegion();
-    live.textContent = msg || '';
+    ensureLiveRegion().textContent = msg || '';
+  }
+  function setHeading(el, view, rangeDays, total, min) {
+    if (!el) return;
+    const rangePhrase =
+      (rangeDays === 7)  ? 'for the last 7 days' :
+      (rangeDays === 30) ? 'for the last 30 days' :
+                           `since tag was fitted (${total} days)`;
+    const durPhrase =
+      (Number(min) === 0) ? '(All durations)' :
+      (Number(min) === 1) ? '(Over 1 min)'   :
+      (Number(min) === 5) ? '(Over 5 mins)'  : '(Over 15 mins)';
+    const viewWord = (view === 'table') ? 'Table' : 'Graph';
+    el.textContent = `${viewWord} showing curfew data ${rangePhrase} ${durPhrase}`;
+  }
+  function setDurationUI(links, min) {
+    links.forEach(a => {
+      if (a.dataset.min === String(min)) a.setAttribute('aria-current', 'true');
+      else a.removeAttribute('aria-current');
+    });
   }
 
   // ---------- table generation + pagination ----------
   const PAGE_SIZE = 20;
 
-  function buildEventRows(dataset, rangeDays, minDuration) {
+  // Build array of row HTML strings, newest day first; within each day, latest time first
+function buildEventRows(dataset, rangeDays, minDuration) {
   const pad2 = (n)=>String(n).padStart(2,'0');
   const df = new Intl.DateTimeFormat('en-GB', {
     weekday:'long', day:'2-digit', month:'long', year:'numeric'
@@ -166,16 +159,21 @@ function setHeading(el, view, rangeDays, total, min) {
   const rows = [];
   const slice = (dataset.days || []).slice(-rangeDays); // oldest → newest
 
-  // helper: minutes from midnight
   const tMin = (H, M) => (Number(H) || 0) * 60 + (Number(M) || 0);
 
-  for (const d of slice) {
+  // 🔁 reverse loop → newest day first
+  for (let i = slice.length - 1; i >= 0; i--) {
+    const d = slice[i];
     const [y,m,dd] = (d.date || '').split('-').map(Number);
     const pretty = df.format(new Date(y || 1970, (m || 1) - 1, dd || 1));
 
-    // 1) filter by duration, 2) sort by start time (earliest → latest)
+    // Filter by duration, **drop zero-minute events**, sort by time (latest first)
     const dayEvents = (d.events || [])
-      .filter(ev => Number(ev.minutes) >= (Number(minDuration) || 0))
+      .filter(ev => {
+        const mins = Number(ev.minutes) || 0;
+        if (mins <= 0) return false;                 // hide zero-minute rows
+        return mins >= (Number(minDuration) || 0);
+      })
       .slice()
       .sort((a, b) => tMin(b.startHH, b.startMM) - tMin(a.startHH, a.startMM));
 
@@ -186,8 +184,8 @@ function setHeading(el, view, rangeDays, total, min) {
       const endStr   = fmtTime(end.hh, end.mm);
       const durStr   = mins === 1 ? '1 min' : `${mins} mins`;
       const typeText = ev.type === 'unacceptable' ? 'Out past curfew'
-                    : ev.type === 'acceptable'   ? 'Return home late'
-                    : 'Pending classification';
+                   : ev.type === 'acceptable'   ? 'Return home late'
+                   : 'Pending classification';
       const statusText = ev.type ? (ev.type.charAt(0).toUpperCase() + ev.type.slice(1)) : 'Pending';
 
       rows.push(`
@@ -216,36 +214,27 @@ function setHeading(el, view, rangeDays, total, min) {
       if (opts.disabled) {
         return `<li class="${cls.join(' ')}"><span class="moj-pagination__link" aria-disabled="true">${label}</span></li>`;
       }
-      if (opts.ellipses) {
-        return `<li class="${cls.join(' ')}" aria-hidden="true">…</li>`;
-      }
+      if (opts.ellipses) return `<li class="${cls.join(' ')}" aria-hidden="true">…</li>`;
       const aria = (opts.current) ? ' aria-current="page"' : '';
-      const rel = opts.prev ? ' rel="prev"' : opts.next ? ' rel="next"' : '';
-      return `<li class="${cls.join(' ')}">
-        <a class="moj-pagination__link" href="#" data-page="${n}"${aria}${rel}
-           aria-label="${opts.prev ? 'Previous page' : opts.next ? 'Next page' : 'Page ' + n}">${label}</a>
-      </li>`;
+      const rel  = opts.prev ? ' rel="prev"' : opts.next ? ' rel="next"' : '';
+      return `<li class="${cls.join(' ')}"><a class="moj-pagination__link" href="#" data-page="${n}"${aria}${rel}
+        aria-label="${opts.prev ? 'Previous page' : opts.next ? 'Next page' : 'Page ' + n}">${label}</a></li>`;
     };
 
     const current = currentPage;
-    const last = totalPages;
-
-    const win = 2;
-    const start = Math.max(1, current - win);
-    const end = Math.min(last, current + win);
+    const last    = totalPages;
+    const win     = 2;
+    const start   = Math.max(1, current - win);
+    const end     = Math.min(last, current + win);
 
     const parts = [];
-    parts.push(item(current - 1, '<span class="moj-pagination__link-title">Previous</span>', { prev: true, disabled: current === 1 }));
-
+    parts.push(item(current-1, '<span class="moj-pagination__link-title">Previous</span>', {prev:true, disabled: current===1}));
     if (start > 1) parts.push(item(1, 1));
-    if (start > 2) parts.push(item(null, '…', { ellipses: true }));
-
-    for (let n = start; n <= end; n++) parts.push(item(n, n, { current: n === current }));
-
-    if (end < last - 1) parts.push(item(null, '…', { ellipses: true }));
-    if (end < last) parts.push(item(last, last));
-
-    parts.push(item(current + 1, '<span class="moj-pagination__link-title">Next</span>', { next: true, disabled: current === last }));
+    if (start > 2) parts.push(item(null, '…', {ellipses:true}));
+    for (let n=start; n<=end; n++) parts.push(item(n, n, {current: n===current}));
+    if (end < last-1) parts.push(item(null, '…', {ellipses:true}));
+    if (end < last)   parts.push(item(last, last));
+    parts.push(item(current+1, '<span class="moj-pagination__link-title">Next</span>', {next:true, disabled: current===last}));
 
     pagerEl.innerHTML = `<ul class="moj-pagination__list">${parts.join('')}</ul>`;
   }
@@ -254,17 +243,17 @@ function setHeading(el, view, rangeDays, total, min) {
     const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
     const current = Math.min(Math.max(1, page || 1), totalPages);
     const start = (current - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
+    const end   = start + PAGE_SIZE;
 
     tbody.innerHTML = rows.slice(start, end).join('');
 
     if (captionEl) {
       const label = (rangeDays === 7) ? 'Last 7 days' :
-        (rangeDays === 30) ? 'Last 30 days' :
-          `Since tag was fitted (${dataset.totalDays} days)`;
+                    (rangeDays === 30) ? 'Last 30 days' :
+                    `Since tag was fitted (${dataset.totalDays} days)`;
       const dur = (minDuration === 0) ? 'All durations' :
-        (minDuration === 1) ? 'Over 1 min' :
-          (minDuration === 5) ? 'Over 5 mins' : 'Over 15 mins';
+                  (minDuration === 1) ? 'Over 1 min' :
+                  (minDuration === 5) ? 'Over 5 mins' : 'Over 15 mins';
       captionEl.textContent = `Violation events – ${label} (${dur}) • ${rows.length} results`;
     }
 
@@ -281,10 +270,10 @@ function setHeading(el, view, rangeDays, total, min) {
       data: {
         labels: [],
         datasets: [
-          { label: 'Acceptable', data: [], tension: 0.25, pointRadius: 2, borderWidth: 2, borderColor: '#008b76' },
-          { label: 'Unacceptable', data: [], tension: 0.25, pointRadius: 2, borderWidth: 2, borderColor: '#d4351c' },
-          { label: 'Pending', data: [], tension: 0.25, pointRadius: 2, borderWidth: 2, borderColor: '#b1b4b6' },
-          { label: 'Total', data: [], tension: 0.25, pointRadius: 0, borderWidth: 2, borderColor: '#505a5f', borderDash: [6, 4] }
+          { label: 'Acceptable',   data: [], tension: 0.25, pointRadius: 2, borderWidth: 4, borderColor: '#008b76' },
+          { label: 'Unacceptable', data: [], tension: 0.25, pointRadius: 2, borderWidth: 4, borderColor: '#d4351c' },
+          { label: 'Pending',      data: [], tension: 0.25, pointRadius: 2, borderWidth: 4, borderColor: '#b1b4b6' },
+          { label: 'Total',        data: [], tension: 0.25, pointRadius: 0, borderWidth: 3, borderColor: '#505a5f', borderDash: [6, 4] }
         ]
       },
       options: {
@@ -301,43 +290,40 @@ function setHeading(el, view, rangeDays, total, min) {
 
   // ---------- main ----------
   onReady(async function () {
-    const headingEl = document.getElementById('violation-heading');
-    const chooserEl = document.getElementById('range-chooser');
-    const canvas = document.getElementById('violationsChart');
+    // DOM
+    const headingEl  = document.getElementById('violation-heading');
+    const chooserEl  = document.getElementById('range-chooser');
+    const canvas     = document.getElementById('violationsChart');
     const eventsBody = document.getElementById('bh-events-body');
-    const captionEl = document.getElementById('bh-table-caption');
+    const captionEl  = document.getElementById('bh-table-caption');
     if (captionEl) captionEl.classList.add('govuk-visually-hidden');
-    const pagerEl = document.getElementById('bh-pager');
-    const typeBtn = document.getElementById('curfew-btn-stacked');
-    const durationLinks = Array.from(document.querySelectorAll('.bh-duration-link')).map((a, i) => {
-      if (!a.hasAttribute('data-min')) a.setAttribute('data-min', String([0, 1, 5, 15][i] ?? 0));
+    const pagerEl    = document.getElementById('bh-pager');
+    const typeBtn    = document.getElementById('curfew-btn-stacked');
+
+    // ONE declaration (no duplicate const errors)
+    const durationLinks = Array.from(document.querySelectorAll('.bh-duration-link')).map((a,i)=>{
+      if(!a.hasAttribute('data-min')) a.setAttribute('data-min', String([0,1,5,15][i] ?? 0));
       return a;
     });
 
-    // Make sure first visit starts with chart/7 days/all durations
-    seedCurfewDefaultsOnce();
+    // seed defaults for first visit
+    seedDefaultsOnce();
 
+    // Chart instance
     const chart = ensureChart(canvas);
     if (!chart) { console.warn('[curfew] Chart not available'); return; }
     window.curfewChart = chart;
 
+    // Load data
     const DATA = window.VIOLATION_SERIES || await loadDataset();
 
-    let currentView = 'chart'; // default; will be updated by the view-toggle event
+    // read prefs (clamped + sanitised)
+    let rangeDays   = Math.min(Number(getPref(key('rangeDays'), 7)) || 7, DATA.totalDays || 7);
+    let minDuration = Number(getPref(key('durationMin'), 0)) || 0;
+    let chartMode   = getPref(key('mode'), 'line');
+    let currentView = 'chart'; // updated via bh:curfew:view-changed
 
-
-    // ------ defaults & prefs ------
-    const DEFAULT_RANGE = 7; // first-load default
-    let rangeDays = Number(getPref(key('rangeDays'), DEFAULT_RANGE));
-    if (!Number.isFinite(rangeDays) || rangeDays <= 0) rangeDays = DEFAULT_RANGE;
-    rangeDays = Math.min(rangeDays, DATA.totalDays || rangeDays);
-
-    let minDuration = Number(getPref(key('durationMin'), 0));
-    if (!Number.isFinite(minDuration) || minDuration < 0) minDuration = 0;
-
-    let chartMode = getPref(key('mode'), 'line');
-
-    // ------ render helpers ------
+    // --- renderers ---
     function renderChartAndUI() {
       const s = buildSeries(DATA, rangeDays, minDuration);
       chart.data.labels = s.labels;
@@ -349,48 +335,48 @@ function setHeading(el, view, rangeDays, total, min) {
 
       setHeading(headingEl, currentView, rangeDays, DATA.totalDays, minDuration);
       setDurationUI(durationLinks, minDuration);
-      announce(`Chart updated for ${headingEl.textContent.toLowerCase()}, ${minDuration===0?'all durations':`≥${minDuration} mins`}.`);
+
+      const durText = (minDuration===0) ? 'All durations' :
+                      (minDuration===1) ? 'Over 1 min' :
+                      (minDuration===5) ? 'Over 5 mins' : 'Over 15 mins';
+      announce(`${currentView === 'table' ? 'Table' : 'Graph'} updated ${rangeDays===7?'for the last 7 days':rangeDays===30?'for the last 30 days':`since tag was fitted (${DATA.totalDays} days)`} (${durText}).`);
     }
 
     function setChartMode(mode) {
       chartMode = mode;
       setPref(key('mode'), mode);
+
       const x = (chart.options.scales.x ||= {});
       const y = (chart.options.scales.y ||= { beginAtZero:true, title:{display:true, text:'Minutes'} });
 
       if (mode === 'line') {
         chart.config.type = 'line';
         x.stacked = false; y.stacked = false;
-        
-        const LINE_BORDER_WIDTH  = 4; // thickness for Acceptable/Unacceptable/Pending
-        const TOTAL_BORDER_WIDTH = 3; // thickness for the dashed "Total" line
-
         chart.data.datasets.forEach((ds, i) => {
-          ds.borderWidth = (i === 3 ? TOTAL_BORDER_WIDTH : LINE_BORDER_WIDTH);
+          ds.type = 'line';
+          ds.borderWidth = (i === 3 ? 3 : 4);
           ds.pointRadius = 2;
           if (i < 3) ds.backgroundColor = 'transparent';
         });
-
-        chart.data.datasets[3].hidden = false; // show Total line
+        chart.data.datasets[3].hidden = false; // show Total
       } else {
         chart.config.type = 'bar';
         const stacked = (mode === 'bar-stacked');
         x.stacked = stacked; y.stacked = stacked;
         const fills = ['#008b76', '#d4351c', '#b1b4b6'];
         chart.data.datasets.forEach((ds, i) => {
+          ds.type = 'bar';
           ds.borderWidth = 0; ds.pointRadius = 0;
           if (i < 3) ds.backgroundColor = fills[i];
         });
-        chart.data.datasets[3].hidden = true;  // hide Total
+        chart.data.datasets[3].hidden = true; // hide Total in bar modes
       }
 
-      // update button label for the NEXT mode
-      const typeBtn = document.getElementById('curfew-btn-stacked');
       if (typeBtn) {
         const nextText =
           (mode === 'line')        ? 'Switch to stacked bars' :
           (mode === 'bar-stacked') ? 'Switch to grouped bars' :
-                                      'Switch to line chart';
+                                     'Switch to line chart';
         typeBtn.textContent = nextText;
       }
 
@@ -398,26 +384,28 @@ function setHeading(el, view, rangeDays, total, min) {
       requestAnimationFrame(() => chart.resize());
     }
 
-    // table rendering (called when view-toggle asks for it)
     function buildRows() { return buildEventRows(DATA, rangeDays, minDuration); }
-    function renderCurfewTableFromCurrent() {
+
+    function renderCurfewTableFromCurrent(page = 1) {
       if (!eventsBody || !captionEl || !pagerEl) return;
       const rows = buildRows();
-      const currentPage = 1;
-      renderEventTablePage(eventsBody, captionEl, pagerEl, rows, currentPage, DATA, rangeDays, minDuration);
+      renderEventTablePage(eventsBody, captionEl, pagerEl, rows, page, DATA, rangeDays, minDuration);
       if (window.TimeFormat?.normaliseCurfewTimesNow) window.TimeFormat.normaliseCurfewTimesNow();
-      announce(`Table updated for ${headingEl.textContent.toLowerCase()}, ${minDuration===0?'all durations':`≥${minDuration} mins`}.`);
-    }
-    window.renderCurfewTableFromCurrent = renderCurfewTableFromCurrent;
-    document.addEventListener('bh:curfew:request-table', renderCurfewTableFromCurrent);
 
+      const durText = (minDuration===0) ? 'All durations' :
+                      (minDuration===1) ? 'Over 1 min' :
+                      (minDuration===5) ? 'Over 5 mins' : 'Over 15 mins';
+      announce(`Table updated ${rangeDays===7?'for the last 7 days':rangeDays===30?'for the last 30 days':`since tag was fitted (${DATA.totalDays} days)`} (${durText}).`);
+    }
+
+    // --- events ---
     document.addEventListener('bh:curfew:view-changed', (e) => {
       currentView = (e?.detail?.view === 'table') ? 'table' : 'chart';
       setHeading(headingEl, currentView, rangeDays, DATA.totalDays, minDuration);
+      if (currentView === 'table') renderCurfewTableFromCurrent(1);
     });
+    document.addEventListener('bh:curfew:request-table', () => renderCurfewTableFromCurrent(1));
 
-
-    // interactions
     if (pagerEl) {
       pagerEl.addEventListener('click', (e) => {
         const a = e.target.closest('a[data-page]'); if (!a) return;
@@ -428,6 +416,7 @@ function setHeading(el, view, rangeDays, total, min) {
         document.getElementById('curfew-table-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
+
     if (chooserEl) {
       chooserEl.addEventListener('click', (e) => {
         const a = e.target.closest('a[data-range]'); if (!a) return;
@@ -436,9 +425,11 @@ function setHeading(el, view, rangeDays, total, min) {
         setPref(key('rangeDays'), String(rangeDays));
         const rowsOpen = !document.getElementById('curfew-table-wrap')?.hasAttribute('hidden');
         renderChartAndUI();
-        if (rowsOpen) renderCurfewTableFromCurrent();
+        if (rowsOpen) renderCurfewTableFromCurrent(1);
+        // no auto scroll on range change
       });
     }
+
     durationLinks.forEach(a => {
       a.addEventListener('click', (e) => {
         e.preventDefault();
@@ -446,27 +437,25 @@ function setHeading(el, view, rangeDays, total, min) {
         setPref(key('durationMin'), String(minDuration));
         const rowsOpen = !document.getElementById('curfew-table-wrap')?.hasAttribute('hidden');
         renderChartAndUI();
-        if (rowsOpen) renderCurfewTableFromCurrent();
+        if (rowsOpen) renderCurfewTableFromCurrent(1);
       });
     });
-    const typeBtnEl = document.getElementById('curfew-btn-stacked');
-    if (typeBtnEl) {
-      typeBtnEl.addEventListener('click', () => {
-        const next = chartMode === 'line' ? 'bar-stacked'
-          : chartMode === 'bar-stacked' ? 'bar-grouped'
-          : 'line';
+
+    if (typeBtn) {
+      typeBtn.addEventListener('click', () => {
+        const mode = chartMode;
+        const next = (mode === 'line') ? 'bar-stacked'
+                  : (mode === 'bar-stacked') ? 'bar-grouped'
+                  : 'line';
+        chartMode = next;
         setChartMode(next);
       });
     }
 
-    // ---- first paint ----
-    setChartMode(chartMode || 'line'); // apply saved mode or line
-    renderChartAndUI();
-
-    window.addEventListener('load', () => { chart.resize(); });
-    document.addEventListener('bh:curfew:view-changed', (e) => {
-      if (e?.detail?.view === 'chart') requestAnimationFrame(() => chart.resize());
-    });
+    // ---- first paint (guaranteed non-blank) ----
+    setChartMode(chartMode || 'line');           // apply saved mode or line
+    renderChartAndUI();                          // paints Line • 7 days • All durations on first visit
+    window.addEventListener('load', () => chart.resize());
     document.dispatchEvent(new CustomEvent('bh:curfew:data-ready'));
   });
 })();

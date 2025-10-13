@@ -18,6 +18,20 @@
   const getPref = (k, d) => { try { const v = LS && LS.getItem(k); return (v === null || v === undefined) ? d : v; } catch { return d; } };
   const setPref = (k, v) => { try { LS && LS.setItem(k, v); } catch { } };
 
+  // Seed sensible defaults on true first visit (v2 keys absent)
+  function seedCurfewDefaultsOnce() {
+    const seededKey = key('seeded');
+    // if we've ever seeded v2 before, do nothing
+    if (getPref(seededKey, null) !== null) return;
+
+    // Defaults for the chart path
+    setPref(key('rangeDays'), '7');       // Last 7 days
+    setPref(key('durationMin'), '0');     // All durations
+    setPref(key('mode'), 'line');         // Line chart as default
+    setPref(seededKey, '1');              // mark as seeded
+  }
+
+
   // time formatting (table generator uses dots; UI normaliser fixes display)
   const to12h = (h) => ({ h: ((h + 11) % 12) + 1, suf: h < 12 ? 'am' : 'pm' });
   function fmtTime(hh, mm) { const { h, suf } = to12h(hh); return `${h}.${pad2(mm)}${suf}`; }
@@ -300,6 +314,9 @@ function setHeading(el, view, rangeDays, total, min) {
       return a;
     });
 
+    // Make sure first visit starts with chart/7 days/all durations
+    seedCurfewDefaultsOnce();
+
     const chart = ensureChart(canvas);
     if (!chart) { console.warn('[curfew] Chart not available'); return; }
     window.curfewChart = chart;
@@ -420,8 +437,6 @@ function setHeading(el, view, rangeDays, total, min) {
         const rowsOpen = !document.getElementById('curfew-table-wrap')?.hasAttribute('hidden');
         renderChartAndUI();
         if (rowsOpen) renderCurfewTableFromCurrent();
-        const anchor = document.querySelector('h3.govuk-heading-m');
-        if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     }
     durationLinks.forEach(a => {

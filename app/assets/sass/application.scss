@@ -790,7 +790,7 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
   margin-left: auto;        /* pushes this block to the far right */
   display: flex;
   align-items: center;
-  margin-top: -30px;
+  transform: translateY(-15px);;
 }
 #curfew-duration-controls p { margin: 0; }
 

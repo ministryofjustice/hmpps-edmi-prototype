@@ -11,6 +11,26 @@
 
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
+  <div class="govuk-summary-list__row">
+    <dt class="govuk-summary-list__key">13 October 2025</dt>
+    <dd class="govuk-summary-list__value">
+      Curfew stability pass and data/date freshness:
+      <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+        <li><strong>Robust first-load behaviour:</strong> guaranteed default to <em>Line • Last 7 days • All durations</em> on initial visit (even with saved prefs present).</li>
+        <li><strong>State versioning uplift:</strong> migrated preferences to <code>curfew:v3</code> with safe first-run seeding; added a quick “reset curfew prefs” snippet for troubleshooting.</li>
+        <li><strong>Table mirrors JSON precisely:</strong> zero-minute events are suppressed; table re-renders immediately when filters change while in table view.</li>
+        <li><strong>Newest-first listing:</strong> event table now orders days <em>newest → oldest</em> (and, within each day, <em>latest time → earliest</em>) so the most recent data appears on page 1.</li>
+        <li><strong>No jump on range change:</strong> range/duration updates no longer yank focus; smooth, in-place refresh of chart/table content.</li>
+        <li><strong>Cache-busting of datasets:</strong> added a timestamp query to the JSON fetch to avoid stale data during rapid prototyping.</li>
+        <li><strong>Graph-type control fixed:</strong> cycling between line / stacked bars / grouped bars is reliable again; button text always describes the <em>next</em> mode.</li>
+        <li><strong>View toggle hardened:</strong> isolated logic in <code>curfew-view-toggle.js</code> with events (<code>bh:curfew:view-changed</code>, <code>bh:curfew:request-table</code>) and a simple <code>.bh-hide</code> utility to conceal the chart-mode button in table view.</li>
+        <li><strong>Live a11y feedback maintained:</strong> compact heading reflects view/range/duration; polite announcements confirm updates.</li>
+        <li><strong>Dataset refresh:</strong> updated <code>/public/data/violations-bh.json</code> so the series runs through Mon&nbsp;13&nbsp;Oct; auto-resolved policy applied — <em>Pending</em> totals set to zero for days older than five.</li>
+        <li><strong>Regressions removed:</strong> cleaned duplicate declarations and init-order issues that briefly blanked the chart on load.</li>
+      </ul>
+    </dd>
+  </div>
+
 <div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">10 October 2025</dt>
   <dd class="govuk-summary-list__value">

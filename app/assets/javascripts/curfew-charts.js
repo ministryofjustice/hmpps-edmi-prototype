@@ -149,6 +149,13 @@
   // ---------- table generation + pagination ----------
   const PAGE_SIZE = 20;
 
+  // Human labels for status keys (don’t change data keys)
+  const STATUS_LABEL = {
+    acceptable:   'Reasonable',
+    unacceptable: 'Unreasonable',
+    pending:      'Pending'
+  };
+
   // Build array of row HTML strings, newest day first; within each day, latest time first
 function buildEventRows(dataset, rangeDays, minDuration) {
   const pad2 = (n)=>String(n).padStart(2,'0');
@@ -186,17 +193,19 @@ function buildEventRows(dataset, rangeDays, minDuration) {
       const typeText = ev.type === 'unacceptable' ? 'Out past curfew'
                    : ev.type === 'acceptable'   ? 'Return home late'
                    : 'Pending classification';
-      const statusText = ev.type ? (ev.type.charAt(0).toUpperCase() + ev.type.slice(1)) : 'Pending';
+      const statusKey  = ev.type || 'pending';
+      const statusText = STATUS_LABEL[statusKey] || (statusKey.charAt(0).toUpperCase() + statusKey.slice(1));
 
       rows.push(`
-        <tr class="govuk-table__row" data-status="${ev.type || 'pending'}">
+        <tr class="govuk-table__row" data-status="${statusKey}">
           <td class="govuk-table__cell" data-sort-value="${d.date || ''}">${pretty}</td>
           <td class="govuk-table__cell" data-sort-value="${pad2(ev.startHH)}${pad2(ev.startMM)}">${startStr} to ${endStr}</td>
           <td class="govuk-table__cell" data-sort-value="${mins}">${durStr}</td>
           <td class="govuk-table__cell">${typeText}</td>
-          <td class="govuk-table__cell" data-sort-value="${ev.type || 'pending'}">${statusText}</td>
+          <td class="govuk-table__cell" data-sort-value="${statusKey}">${statusText}</td>
         </tr>
       `);
+
     }
   }
   return rows;
@@ -260,33 +269,81 @@ function buildEventRows(dataset, rangeDays, minDuration) {
     renderPager(pagerEl, totalPages, current);
   }
 
-  // ---------- Chart.js setup ----------
-  function ensureChart(canvas) {
-    if (!canvas || typeof Chart === 'undefined') return null;
-    const existing = Chart.getChart ? Chart.getChart(canvas) : null;
-    if (existing) return existing;
-    return new Chart(canvas.getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: [
-          { label: 'Acceptable',   data: [], tension: 0.25, pointRadius: 2, borderWidth: 4, borderColor: '#008b76' },
-          { label: 'Unacceptable', data: [], tension: 0.25, pointRadius: 2, borderWidth: 4, borderColor: '#d4351c' },
-          { label: 'Pending',      data: [], tension: 0.25, pointRadius: 2, borderWidth: 4, borderColor: '#b1b4b6' },
-          { label: 'Total',        data: [], tension: 0.25, pointRadius: 0, borderWidth: 3, borderColor: '#505a5f', borderDash: [6, 4] }
-        ]
+// ---------- Chart.js setup with reduced-motion guard ----------
+function ensureChart(canvas) {
+  if (!canvas || typeof Chart === 'undefined') return null;
+  const existing = Chart.getChart ? Chart.getChart(canvas) : null;
+  if (existing) return existing;
+
+  // Respect OS-level reduced motion preference
+  const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const reducedMotion = mq.matches;
+
+  const chart = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { key: 'reasonable',   label: 'Reasonable',   data: [], tension: 0.25, pointRadius: 3, pointStyle: 'circle',   borderWidth: 4, borderDash: [],            borderColor: '#00703c' },
+        { key: 'unreasonable', label: 'Unreasonable', data: [], tension: 0.25, pointRadius: 3, pointStyle: 'rect',     borderWidth: 4, borderDash: [2, 3],       borderColor: '#d4351c' },
+        { key: 'pending',      label: 'Pending',      data: [], tension: 0.25, pointRadius: 3, pointStyle: 'triangle', borderWidth: 4, borderDash: [6, 2, 1, 2], borderColor: '#b1b4b6' },
+        { key: 'total',        label: 'Total',        data: [], tension: 0.25, pointRadius: 0,                          borderWidth: 3, borderDash: [6, 4],       borderColor: '#505a5f' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: { 
+        x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
+        y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } 
       },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        scales: { 
-          x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
-          y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } 
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { usePointStyle: true }
         },
-        plugins: { legend: { position: 'top' } }
+        tooltip: {
+          animation: !reducedMotion // Chart.js still animates tooltips; disable if reduced
+        }
+      },
+      // Disable chart animations if user prefers reduced motion
+      animation: {
+        duration: reducedMotion ? 0 : 400
+      },
+      transitions: reducedMotion ? {
+        active:   { animation: { duration: 0 } },
+        resize:   { animation: { duration: 0 } },
+        show:     { animation: { duration: 0 } },
+        hide:     { animation: { duration: 0 } }
+      } : undefined
+    }
+  });
+
+  // React live if the OS setting changes
+  if (typeof mq.addEventListener === 'function') {
+    mq.addEventListener('change', (e) => {
+      const reduce = e.matches;
+      chart.options.animation.duration = reduce ? 0 : 400;
+      chart.options.plugins.tooltip.animation = !reduce;
+      if (reduce) {
+        chart.options.transitions = {
+          active: { animation: { duration: 0 } },
+          resize: { animation: { duration: 0 } },
+          show:   { animation: { duration: 0 } },
+          hide:   { animation: { duration: 0 } }
+        };
+      } else {
+        chart.options.transitions = undefined;
       }
+      chart.update(0);
     });
   }
+
+  return chart;
+}
+
+
 
   // ---------- main ----------
   onReady(async function () {
@@ -453,9 +510,17 @@ function buildEventRows(dataset, rangeDays, minDuration) {
     }
 
     // ---- first paint (guaranteed non-blank) ----
-    setChartMode(chartMode || 'line');           // apply saved mode or line
-    renderChartAndUI();                          // paints Line • 7 days • All durations on first visit
+    setChartMode(chartMode || 'line');   // apply saved mode or line
+    renderChartAndUI();                  // paints Line • 7 days • All durations
+
+    // If the table is currently visible, populate its first page now.
+    const tableWrap = document.getElementById('curfew-table-wrap');
+    if (tableWrap && !tableWrap.hasAttribute('hidden')) {
+      renderCurfewTableFromCurrent(1);
+    }
+
     window.addEventListener('load', () => chart.resize());
     document.dispatchEvent(new CustomEvent('bh:curfew:data-ready'));
+
   });
 })();

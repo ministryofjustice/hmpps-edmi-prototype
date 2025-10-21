@@ -302,10 +302,10 @@ function ensureChart(canvas) {
     data: {
       labels: [],
       datasets: [
-        { key: 'reasonable',   label: 'Reasonable',   data: [], tension: 0.25, pointRadius: 3, pointStyle: 'circle',   borderWidth: 4, borderDash: [],            borderColor: '#1D70B8' },
+        { key: 'reasonable',   label: 'Reasonable',   data: [], tension: 0.25, pointRadius: 3, pointStyle: 'circle',   borderWidth: 4, borderDash: [],           borderColor: '#1D70B8' },
         { key: 'unreasonable', label: 'Unreasonable', data: [], tension: 0.25, pointRadius: 3, pointStyle: 'rect',     borderWidth: 4, borderDash: [2, 3],       borderColor: '#d4351c' },
         { key: 'pending',      label: 'Pending',      data: [], tension: 0.25, pointRadius: 3, pointStyle: 'triangle', borderWidth: 4, borderDash: [6, 2, 1, 2], borderColor: '#b1b4b6' },
-        { key: 'total',        label: 'Total',        data: [], tension: 0.25, pointRadius: 0,                          borderWidth: 3, borderDash: [6, 4],       borderColor: '#505a5f' }
+        { key: 'total',        label: 'Total',        data: [], tension: 0.25, pointRadius: 0,                         borderWidth: 4, borderDash: [6, 4],       borderColor: '#505a5f' }
       ]
     },
     options: {
@@ -470,7 +470,7 @@ function ensureChart(canvas) {
         chart.config.type = 'bar';
         const stacked = (mode === 'bar-stacked');
         x.stacked = stacked; y.stacked = stacked;
-        const fills = ['#008b76', '#d4351c', '#b1b4b6'];
+        const fills = ['#1D70B8', '#d4351c', '#b1b4b6'];
         chart.data.datasets.forEach((ds, i) => {
           ds.type = 'bar';
           ds.borderWidth = 0; ds.pointRadius = 0;

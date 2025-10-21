@@ -35,6 +35,24 @@
   function fmtTime(hh, mm) { const { h, suf } = to12h(hh); return `${h}.${pad2(mm)}${suf}`; } // dots will be normalised by your normaliser
   function addMinutes(hh, mm, mins) { const t = hh * 60 + mm + mins; return { hh: Math.floor((t / 60) % 24), mm: t % 60 }; }
 
+  // --- Dev feature flag: hide "Pending" status (default: false) ---
+  // Ways to toggle:
+  //   • URL param: ?ff-pending=1 (hide) or ?ff-pending=0 (show) — persists to localStorage
+  //   • Console: localStorage.setItem('bh:ff:hidePending','1')  // hide
+  //               localStorage.removeItem('bh:ff:hidePending')  // reset to default (show)
+  function readHidePendingFlag() {
+    const LS_KEY = 'bh:ff:hidePending';
+    const params = new URLSearchParams(location.search);
+    if (params.has('ff-pending')) {
+      const val = params.get('ff-pending') === '1' ? '1' : '';
+      if (val) localStorage.setItem(LS_KEY, val);
+      else     localStorage.removeItem(LS_KEY);
+    }
+    return localStorage.getItem(LS_KEY) === '1';
+  }
+  const HIDE_PENDING = readHidePendingFlag();
+
+
   // ---------- fallback dataset (only if fetch fails) ----------
   function skewedMinutes() { const u = Math.random(); const m = Math.round(-Math.log(1 - u) * 8); return clamp(m, 1, 217); }
   function pickType() { const u = Math.random(); if (u < 0.55) return 'pending'; if (u < 0.80) return 'unacceptable'; return 'acceptable'; }
@@ -284,7 +302,7 @@ function ensureChart(canvas) {
     data: {
       labels: [],
       datasets: [
-        { key: 'reasonable',   label: 'Reasonable',   data: [], tension: 0.25, pointRadius: 3, pointStyle: 'circle',   borderWidth: 4, borderDash: [],            borderColor: '#00703c' },
+        { key: 'reasonable',   label: 'Reasonable',   data: [], tension: 0.25, pointRadius: 3, pointStyle: 'circle',   borderWidth: 4, borderDash: [],            borderColor: '#1D70B8' },
         { key: 'unreasonable', label: 'Unreasonable', data: [], tension: 0.25, pointRadius: 3, pointStyle: 'rect',     borderWidth: 4, borderDash: [2, 3],       borderColor: '#d4351c' },
         { key: 'pending',      label: 'Pending',      data: [], tension: 0.25, pointRadius: 3, pointStyle: 'triangle', borderWidth: 4, borderDash: [6, 2, 1, 2], borderColor: '#b1b4b6' },
         { key: 'total',        label: 'Total',        data: [], tension: 0.25, pointRadius: 0,                          borderWidth: 3, borderDash: [6, 4],       borderColor: '#505a5f' }
@@ -301,12 +319,30 @@ function ensureChart(canvas) {
       plugins: {
         legend: {
           position: 'top',
-          labels: { usePointStyle: true }
+          labels: {
+            usePointStyle: true,
+            // Hide “Pending” from the legend when HIDE_PENDING is true
+            filter: (legendItem, chart) => {
+              try {
+                const ds = chart.data?.datasets?.[legendItem.datasetIndex];
+                if (!ds) return true;
+                const isPending =
+                  (ds.key && ds.key.toLowerCase() === 'pending') ||
+                  (typeof ds.label === 'string' && /pending/i.test(ds.label));
+                return !(HIDE_PENDING && isPending);
+              } catch {
+                // Be permissive if something unexpected happens
+                return true;
+              }
+            }
+          }
         },
         tooltip: {
-          animation: !reducedMotion // Chart.js still animates tooltips; disable if reduced
+          // Keep respecting reduced motion for a11y
+          animation: !reducedMotion
         }
       },
+
       // Disable chart animations if user prefers reduced motion
       animation: {
         duration: reducedMotion ? 0 : 400
@@ -366,10 +402,24 @@ function ensureChart(canvas) {
     // seed defaults for first visit
     seedDefaultsOnce();
 
-    // Chart instance
+    // 1) Get or create the chart
     const chart = ensureChart(canvas);
     if (!chart) { console.warn('[curfew] Chart not available'); return; }
     window.curfewChart = chart;
+
+    // 2) Apply dev feature flag
+    if (HIDE_PENDING) {
+      const ds = chart.data.datasets.find(d =>
+        (d.key && d.key.toLowerCase() === 'pending') ||
+        (typeof d.label === 'string' && /pending/i.test(d.label))
+      );
+      if (ds && !ds.hidden) {
+        ds.hidden = true;
+        chart.update('none'); // no animation
+      }
+    }
+
+
 
     // Load data
     const DATA = window.VIOLATION_SERIES || await loadDataset();
@@ -513,10 +563,15 @@ function ensureChart(canvas) {
     setChartMode(chartMode || 'line');   // apply saved mode or line
     renderChartAndUI();                  // paints Line • 7 days • All durations
 
-    // If the table is currently visible, populate its first page now.
     const tableWrap = document.getElementById('curfew-table-wrap');
-    if (tableWrap && !tableWrap.hasAttribute('hidden')) {
-      renderCurfewTableFromCurrent(1);
+    if (tableWrap) {
+      // Toggle a wrapper class based on the feature flag
+      tableWrap.classList.toggle('bh-hide-pending', !!HIDE_PENDING);
+
+      // Keep your original behavior
+      if (!tableWrap.hasAttribute('hidden')) {
+        renderCurfewTableFromCurrent(1);
+      }
     }
 
     window.addEventListener('load', () => chart.resize());

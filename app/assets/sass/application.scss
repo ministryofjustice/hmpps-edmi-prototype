@@ -779,6 +779,10 @@ tbody > tr.highlighted-row + tr.app-row-expansion > td { background: #F3F2F1; }
 
 /* --- CURFEW GRAPHS AND TABLES --- */
 
+/* Dev flag: hide pending rows when class is present */
+.bh-hide-pending [data-status="pending"] { display: none; }
+
+
 /* Toolbar row: buttons on left, duration links flush-right */
 .bh-chart-header {
   display: flex;

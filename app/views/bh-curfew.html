@@ -41,14 +41,14 @@
   items: [{
     text: "Overview",
     href: "billy-hoskins"
+  }, {
+    text: "Location activity",
+    href: "bh-location"
   },
   {
     text: "Curfew activity",
     href: "",
     active: true
-  }, {
-    text: "Location activity",
-    href: "bh-location"
   }, {
     text: "Tag management",
     href: "bh-tag-breaches"
@@ -97,53 +97,6 @@
       </p>
       {% endcall %}
     </div>
-
-<hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
-
-<section class="bh-curfew-overview govuk-!-margin-bottom-7">
-  <div class="bh-curfew-grid govuk-width-container">
-    <!-- LEFT HAND narrative -->
-    <div class="bh-curfew-left">
-      <h3 class="govuk-heading-m govuk-!-margin-top-10">Curfew compliance forecast</h3>
-
-<p class='govuk-body'>Billy Hoskins is not likely to comply with their HDC over the next 14 days.</p>
-
-<h4 class="govuk-heading-s">How this forecast was calculated</h4>
-
-<p class='govuk-body'>This forecast uses the following 3 variables to produce Billy’s likelihood of compliance:</p>
-<ul class='govuk-list govuk-list--bullet'>
-  <li>their number of violation minutes over the last 7 days</li>
-  <li>their percentage of total days with a time violation since their HDC tag was fitted</li>
-  <li>whether they have any previous custodial sentences</li>
-</ul>
-
-<p class='govuk-body'>A person on probation is considered as being not likely to comply with their HDC if their forecast calculates their likelihood of compliance as being less than 50%.</p>
-    </div>
-
-    <!-- RIGHT: the forecast card -->
-    <aside class="bh-forecast-card" aria-labelledby="forecast-heading">
-      <h2 id="forecast-heading" class="govuk-heading-s govuk-!-margin-bottom-2">Forecast summary</h2>
-
-      <span class="bh-tag bh-tag--danger-outline govuk-!-margin-bottom-3" aria-label="Not likely">
-        NOT LIKELY
-      </span>
-
-      <p class="govuk-body govuk-!-margin-bottom-4">
-        Electronic monitoring calculates the likelihood of compliance as being
-        <strong>less than 50%</strong>
-      </p>
-
-      <p class="govuk-hint govuk-!-margin-bottom-10 govuk-!-font-size-16">
-        This forecast was calculated at 9:30am on Tuesday 14 October 2025.</p>
-      <p class="govuk-hint govuk-!-margin-bottom-10 govuk-!-font-size-16">
-         This forecast will be updated each day when the latest data is available.
-      </p>
-    </aside>
-
-  </div>
-</section>
-
-<hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
 
 <h3 id="violation-minutes" class="govuk-heading-m">Violation minutes</h3>
 
@@ -231,9 +184,54 @@
     <li>leave home during curfew</li>
     <li>leave home before their curfew end time</li>
   </ul>
-  <p class='govuk-body'>The violation minutes on show include reasonable, unreasonable and pending violations.</p>
+  <p class='govuk-body'>The violation minutes on show include reasonable and unreasonable violations.</p>
   "
 }) }}
+
+<section class="bh-curfew-overview govuk-!-margin-bottom-7">
+  <hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
+  <div class="bh-curfew-grid govuk-width-container">
+    <!-- LEFT HAND narrative -->
+    <div class="bh-curfew-left">
+      <h3 class="govuk-heading-m govuk-!-margin-top-10">Curfew compliance forecast</h3>
+
+<p class='govuk-body'>Billy Hoskins is not likely to comply with their HDC over the next 14 days.</p>
+
+<h4 class="govuk-heading-s">How this forecast was calculated</h4>
+
+<p class='govuk-body'>This forecast uses the following 3 variables to produce Billy’s likelihood of compliance:</p>
+<ul class='govuk-list govuk-list--bullet'>
+  <li>their number of violation minutes over the last 7 days</li>
+  <li>their percentage of total days with a time violation since their HDC tag was fitted</li>
+  <li>whether they have any previous custodial sentences</li>
+</ul>
+
+<p class='govuk-body'>A person on probation is considered as being not likely to comply with their HDC if their forecast calculates their likelihood of compliance as being less than 50%.</p>
+    </div>
+
+    <!-- RIGHT: the forecast card -->
+    <aside class="bh-forecast-card" aria-labelledby="forecast-heading">
+      <h2 id="forecast-heading" class="govuk-heading-s govuk-!-margin-bottom-2">Forecast summary</h2>
+
+      <span class="bh-tag bh-tag--danger-outline govuk-!-margin-bottom-3" aria-label="Not likely">
+        NOT LIKELY
+      </span>
+
+      <p class="govuk-body govuk-!-margin-bottom-4">
+        Electronic monitoring calculates the likelihood of compliance as being
+        <strong>less than 50%</strong>
+      </p>
+
+      <p class="govuk-hint govuk-!-margin-bottom-10 govuk-!-font-size-16">
+        This forecast was calculated at 9:30am on Tuesday 14 October 2025.</p>
+      <p class="govuk-hint govuk-!-margin-bottom-10 govuk-!-font-size-16">
+         This forecast will be updated each day when the latest data is available.
+      </p>
+    </aside>
+
+  </div>
+  <hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
+</section>
 
 {# Chart.js #}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" defer></script>

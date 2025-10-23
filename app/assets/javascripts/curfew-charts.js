@@ -25,7 +25,6 @@
     if (getPref(key('seeded'), null) != null) return;
     setPref(key('rangeDays'),   '7');     // last 7 days
     setPref(key('durationMin'), '0');     // all durations
-    setPref(key('mode'),        'line');  // line chart
     setPref('curfew:v3:view',   'chart'); // belt & braces if view-toggle hasn’t run yet
     setPref(key('seeded'),      '1');
   }
@@ -35,27 +34,10 @@
   function fmtTime(hh, mm) { const { h, suf } = to12h(hh); return `${h}.${pad2(mm)}${suf}`; } // dots will be normalised by your normaliser
   function addMinutes(hh, mm, mins) { const t = hh * 60 + mm + mins; return { hh: Math.floor((t / 60) % 24), mm: t % 60 }; }
 
-  // --- Dev feature flag: hide "Pending" status (default: false) ---
-  // Ways to toggle:
-  //   • URL param: ?ff-pending=1 (hide) or ?ff-pending=0 (show) — persists to localStorage
-  //   • Console: localStorage.setItem('bh:ff:hidePending','1')  // hide
-  //               localStorage.removeItem('bh:ff:hidePending')  // reset to default (show)
-  function readHidePendingFlag() {
-    const LS_KEY = 'bh:ff:hidePending';
-    const params = new URLSearchParams(location.search);
-    if (params.has('ff-pending')) {
-      const val = params.get('ff-pending') === '1' ? '1' : '';
-      if (val) localStorage.setItem(LS_KEY, val);
-      else     localStorage.removeItem(LS_KEY);
-    }
-    return localStorage.getItem(LS_KEY) === '1';
-  }
-  const HIDE_PENDING = readHidePendingFlag();
-
-
+    
   // ---------- fallback dataset (only if fetch fails) ----------
   function skewedMinutes() { const u = Math.random(); const m = Math.round(-Math.log(1 - u) * 8); return clamp(m, 1, 217); }
-  function pickType() { const u = Math.random(); if (u < 0.55) return 'pending'; if (u < 0.80) return 'unacceptable'; return 'acceptable'; }
+  
   function buildSyntheticDataset(totalDays = 43) {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const days = [];
@@ -103,31 +85,22 @@
     }
   }
 
-  // ---------- aggregations for chart ----------
-  function aggregateDayByType(day, minMinutes) {
-    const o = { acceptable: 0, unacceptable: 0, pending: 0, total: 0 };
-    for (const ev of (day.events || [])) {
-      const m = Number(ev.minutes);
-      if (!Number.isFinite(m)) continue;
-      if (m >= (Number(minMinutes) || 0)) {
-        const t = (ev.type === 'acceptable' || ev.type === 'unacceptable' || ev.type === 'pending') ? ev.type : 'pending';
-        o[t] += m; o.total += m;
+
+    // ---------- aggregations for chart (v3: no pending) ----------
+    function aggregateDayByType(day, minMinutes) {
+      const o = { reasonable: 0, unreasonable: 0, total: 0 };
+      for (const ev of (day.events || [])) {
+        const m = Number(ev.minutes);
+        if (!Number.isFinite(m)) continue;
+        if (m >= (Number(minMinutes) || 0)) {
+          // Only count acceptable/unacceptable; ignore pending entirely
+          if (ev.type === 'acceptable')      { o.reasonable   += m; o.total += m; }
+          else if (ev.type === 'unacceptable'){ o.unreasonable += m; o.total += m; }
+        }
       }
+      return o;
     }
-    return o;
-  }
-  function buildSeries(dataset, rangeDays, minDuration) {
-    const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
-    const slice = (dataset.days || []).slice(-rangeDays);
-    const labels = [], acc = [], unacc = [], pend = [], tot = [];
-    for (const d of slice) {
-      const [y, m, dd] = (d.date || '').split('-').map(Number);
-      labels.push(fmt.format(new Date(y || 1970, (m || 1) - 1, dd || 1)));
-      const t = aggregateDayByType(d, Number(minDuration) || 0);
-      acc.push(+t.acceptable || 0); unacc.push(+t.unacceptable || 0); pend.push(+t.pending || 0); tot.push(+t.total || 0);
-    }
-    return { labels, acc, unacc, pend, tot };
-  }
+
 
   // ---------- heading + a11y ----------
   function ensureLiveRegion(){
@@ -170,8 +143,7 @@
   // Human labels for status keys (don’t change data keys)
   const STATUS_LABEL = {
     acceptable:   'Reasonable',
-    unacceptable: 'Unreasonable',
-    pending:      'Pending'
+    unacceptable: 'Unreasonable'
   };
 
   // Build array of row HTML strings, newest day first; within each day, latest time first
@@ -183,21 +155,21 @@ function buildEventRows(dataset, rangeDays, minDuration) {
 
   const rows = [];
   const slice = (dataset.days || []).slice(-rangeDays); // oldest → newest
-
   const tMin = (H, M) => (Number(H) || 0) * 60 + (Number(M) || 0);
 
-  // 🔁 reverse loop → newest day first
+  // newest day first; within day, latest time first
   for (let i = slice.length - 1; i >= 0; i--) {
     const d = slice[i];
     const [y,m,dd] = (d.date || '').split('-').map(Number);
     const pretty = df.format(new Date(y || 1970, (m || 1) - 1, dd || 1));
 
-    // Filter by duration, **drop zero-minute events**, sort by time (latest first)
     const dayEvents = (d.events || [])
       .filter(ev => {
         const mins = Number(ev.minutes) || 0;
-        if (mins <= 0) return false;                 // hide zero-minute rows
-        return mins >= (Number(minDuration) || 0);
+        if (mins <= 0) return false; // hide zero-minute rows
+        // keep only acceptable/unacceptable; drop pending entirely
+        return (ev.type === 'acceptable' || ev.type === 'unacceptable') &&
+               mins >= (Number(minDuration) || 0);
       })
       .slice()
       .sort((a, b) => tMin(b.startHH, b.startMM) - tMin(a.startHH, a.startMM));
@@ -208,11 +180,15 @@ function buildEventRows(dataset, rangeDays, minDuration) {
       const startStr = fmtTime(ev.startHH, ev.startMM);
       const endStr   = fmtTime(end.hh, end.mm);
       const durStr   = mins === 1 ? '1 min' : `${mins} mins`;
-      const typeText = ev.type === 'unacceptable' ? 'Out past curfew'
-                   : ev.type === 'acceptable'   ? 'Return home late'
-                   : 'Pending classification';
-      const statusKey  = ev.type || 'pending';
-      const statusText = STATUS_LABEL[statusKey] || (statusKey.charAt(0).toUpperCase() + statusKey.slice(1));
+
+      // derive key + human label
+      const statusKey  = (ev.type === 'acceptable') ? 'acceptable' : 'unacceptable';
+      const statusText = STATUS_LABEL[statusKey]; // Reasonable / Unreasonable
+
+      // contextual description (unchanged apart from names)
+      const typeText = (statusKey === 'unacceptable') ? 'Out past curfew'
+                    : (statusKey === 'acceptable')   ? 'Return home late'
+                    : '';
 
       rows.push(`
         <tr class="govuk-table__row" data-status="${statusKey}">
@@ -223,11 +199,11 @@ function buildEventRows(dataset, rangeDays, minDuration) {
           <td class="govuk-table__cell" data-sort-value="${statusKey}">${statusText}</td>
         </tr>
       `);
-
     }
   }
   return rows;
 }
+
 
 
   function renderPager(pagerEl, totalPages, currentPage) {
@@ -287,7 +263,51 @@ function buildEventRows(dataset, rangeDays, minDuration) {
     renderPager(pagerEl, totalPages, current);
   }
 
-// ---------- Chart.js setup with reduced-motion guard ----------
+    // Alternating background stripes per day/category
+    const dayBandingPlugin = {
+      id: 'dayBanding',
+      beforeDraw(chart, _args, opts) {
+        const { enabled = true, oddFill = 'rgba(0,0,0,0.035)', evenFill = null } = opts || {};
+        if (!enabled) return;
+
+        const x = chart.scales.x;
+        const y = chart.scales.y;
+        if (!x || !y) return;
+
+        const { left, right, top, bottom } = chart.chartArea;
+        const ctx = chart.ctx;
+
+        // Helper: mid-point between two pixel positions
+        const mid = (a, b) => (a + b) / 2;
+
+        // Build band edges by taking midpoints between tick centers
+        const centers = x.ticks.map((_, i) => x.getPixelForTick(i));
+        if (!centers.length) return;
+
+        const edges = [];
+        // Left edge = halfway from first center to chartArea.left
+        edges.push(mid(left, centers[0]));
+        for (let i = 0; i < centers.length - 1; i++) {
+          edges.push(mid(centers[i], centers[i + 1]));
+        }
+        // Right edge = halfway from last center to chartArea.right
+        edges.push(mid(centers[centers.length - 1], right));
+
+        ctx.save();
+        for (let i = 0; i < centers.length; i++) {
+          const x0 = edges[i];
+          const x1 = edges[i + 1];
+          const fill = (i % 2 === 0) ? evenFill : oddFill;
+          if (!fill) continue;
+          ctx.fillStyle = fill;
+          ctx.fillRect(x0, top, x1 - x0, bottom - top);
+        }
+        ctx.restore();
+      }
+    };
+
+
+  // ---------- Chart.js setup with reduced-motion guard ----------
 function ensureChart(canvas) {
   if (!canvas || typeof Chart === 'undefined') return null;
   const existing = Chart.getChart ? Chart.getChart(canvas) : null;
@@ -298,86 +318,61 @@ function ensureChart(canvas) {
   const reducedMotion = mq.matches;
 
   const chart = new Chart(canvas.getContext('2d'), {
-    type: 'line',
+    type: 'bar', // ← grouped bars only
     data: {
       labels: [],
       datasets: [
-        { key: 'reasonable',   label: 'Reasonable',   data: [], tension: 0.25, pointRadius: 3, pointStyle: 'circle',   borderWidth: 4, borderDash: [],           borderColor: '#1D70B8' },
-        { key: 'unreasonable', label: 'Unreasonable', data: [], tension: 0.25, pointRadius: 3, pointStyle: 'rect',     borderWidth: 4, borderDash: [2, 3],       borderColor: '#d4351c' },
-        { key: 'pending',      label: 'Pending',      data: [], tension: 0.25, pointRadius: 3, pointStyle: 'triangle', borderWidth: 4, borderDash: [6, 2, 1, 2], borderColor: '#b1b4b6' },
-        { key: 'total',        label: 'Total',        data: [], tension: 0.25, pointRadius: 0,                         borderWidth: 4, borderDash: [6, 4],       borderColor: '#505a5f' }
+        // two bar datasets; no "Total" dataset here
+        { key: 'reasonable',   label: 'Reasonable',   type: 'bar', data: [], borderWidth: 0, pointRadius: 0, backgroundColor: '#0070b3' },
+        { key: 'unreasonable', label: 'Unreasonable', type: 'bar', data: [], borderWidth: 0, pointRadius: 0, backgroundColor: '#d4351c' }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
-      scales: { 
-        x: { ticks: { maxTicksLimit: 10, autoSkip: true } },
-        y: { beginAtZero: true, title: { display: true, text: 'Minutes' } } 
+      scales: {
+        x: { stacked: false, ticks: { maxTicksLimit: 10, autoSkip: true } },
+        y: { stacked: false, beginAtZero: true, title: { display: true, text: 'Minutes' } }
       },
       plugins: {
         legend: {
           position: 'top',
-          labels: {
-            usePointStyle: true,
-            // Hide “Pending” from the legend when HIDE_PENDING is true
-            filter: (legendItem, chart) => {
-              try {
-                const ds = chart.data?.datasets?.[legendItem.datasetIndex];
-                if (!ds) return true;
-                const isPending =
-                  (ds.key && ds.key.toLowerCase() === 'pending') ||
-                  (typeof ds.label === 'string' && /pending/i.test(ds.label));
-                return !(HIDE_PENDING && isPending);
-              } catch {
-                // Be permissive if something unexpected happens
-                return true;
-              }
-            }
-          }
+          labels: { usePointStyle: true }
         },
         tooltip: {
-          // Keep respecting reduced motion for a11y
           animation: !reducedMotion
         }
       },
-
-      // Disable chart animations if user prefers reduced motion
-      animation: {
-        duration: reducedMotion ? 0 : 400
-      },
+      animation: { duration: reducedMotion ? 0 : 400 },
       transitions: reducedMotion ? {
-        active:   { animation: { duration: 0 } },
-        resize:   { animation: { duration: 0 } },
-        show:     { animation: { duration: 0 } },
-        hide:     { animation: { duration: 0 } }
+        active: { animation: { duration: 0 } },
+        resize: { animation: { duration: 0 } },
+        show:   { animation: { duration: 0 } },
+        hide:   { animation: { duration: 0 } }
       } : undefined
     }
   });
 
-  // React live if the OS setting changes
+  // React to OS setting changes
   if (typeof mq.addEventListener === 'function') {
     mq.addEventListener('change', (e) => {
       const reduce = e.matches;
       chart.options.animation.duration = reduce ? 0 : 400;
       chart.options.plugins.tooltip.animation = !reduce;
-      if (reduce) {
-        chart.options.transitions = {
-          active: { animation: { duration: 0 } },
-          resize: { animation: { duration: 0 } },
-          show:   { animation: { duration: 0 } },
-          hide:   { animation: { duration: 0 } }
-        };
-      } else {
-        chart.options.transitions = undefined;
-      }
+      chart.options.transitions = reduce ? {
+        active: { animation: { duration: 0 } },
+        resize: { animation: { duration: 0 } },
+        show:   { animation: { duration: 0 } },
+        hide:   { animation: { duration: 0 } }
+      } : undefined;
       chart.update(0);
     });
   }
 
   return chart;
 }
+
 
 
 
@@ -391,8 +386,7 @@ function ensureChart(canvas) {
     const captionEl  = document.getElementById('bh-table-caption');
     if (captionEl) captionEl.classList.add('govuk-visually-hidden');
     const pagerEl    = document.getElementById('bh-pager');
-    const typeBtn    = document.getElementById('curfew-btn-stacked');
-
+    
     // ONE declaration (no duplicate const errors)
     const durationLinks = Array.from(document.querySelectorAll('.bh-duration-link')).map((a,i)=>{
       if(!a.hasAttribute('data-min')) a.setAttribute('data-min', String([0,1,5,15][i] ?? 0));
@@ -407,28 +401,33 @@ function ensureChart(canvas) {
     if (!chart) { console.warn('[curfew] Chart not available'); return; }
     window.curfewChart = chart;
 
-    // 2) Apply dev feature flag
-    if (HIDE_PENDING) {
-      const ds = chart.data.datasets.find(d =>
-        (d.key && d.key.toLowerCase() === 'pending') ||
-        (typeof d.label === 'string' && /pending/i.test(d.label))
-      );
-      if (ds && !ds.hidden) {
-        ds.hidden = true;
-        chart.update('none'); // no animation
-      }
-    }
-
-
-
     // Load data
     const DATA = window.VIOLATION_SERIES || await loadDataset();
 
     // read prefs (clamped + sanitised)
     let rangeDays   = Math.min(Number(getPref(key('rangeDays'), 7)) || 7, DATA.totalDays || 7);
     let minDuration = Number(getPref(key('durationMin'), 0)) || 0;
-    let chartMode   = getPref(key('mode'), 'line');
     let currentView = 'chart'; // updated via bh:curfew:view-changed
+
+    function buildSeries(dataset, rangeDays, minDuration) {
+      const fmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: '2-digit', month: 'short' });
+      const slice = (dataset.days || []).slice(-rangeDays);
+
+      const labels = [], acc = [], unacc = [], tot = [];
+
+      for (const d of slice) {
+        const [y, m, dd] = (d.date || '').split('-').map(Number);
+        labels.push(fmt.format(new Date(y || 1970, (m || 1) - 1, dd || 1)));
+
+        const t = aggregateDayByType(d, Number(minDuration) || 0);
+        acc.push(+t.reasonable     || 0);   // maps to dataset[0]
+        unacc.push(+t.unreasonable || 0);   // maps to dataset[1]
+        tot.push(+t.total          || 0);   // maps to dataset[2]
+      }
+
+      return { labels, acc, unacc, tot };
+    }
+
 
     // --- renderers ---
     function renderChartAndUI() {
@@ -436,8 +435,6 @@ function ensureChart(canvas) {
       chart.data.labels = s.labels;
       chart.data.datasets[0].data = s.acc;
       chart.data.datasets[1].data = s.unacc;
-      chart.data.datasets[2].data = s.pend;
-      chart.data.datasets[3].data = s.tot;
       chart.update('none');
 
       setHeading(headingEl, currentView, rangeDays, DATA.totalDays, minDuration);
@@ -449,47 +446,7 @@ function ensureChart(canvas) {
       announce(`${currentView === 'table' ? 'Table' : 'Graph'} updated ${rangeDays===7?'for the last 7 days':rangeDays===30?'for the last 30 days':`since tag was fitted (${DATA.totalDays} days)`} (${durText}).`);
     }
 
-    function setChartMode(mode) {
-      chartMode = mode;
-      setPref(key('mode'), mode);
-
-      const x = (chart.options.scales.x ||= {});
-      const y = (chart.options.scales.y ||= { beginAtZero:true, title:{display:true, text:'Minutes'} });
-
-      if (mode === 'line') {
-        chart.config.type = 'line';
-        x.stacked = false; y.stacked = false;
-        chart.data.datasets.forEach((ds, i) => {
-          ds.type = 'line';
-          ds.borderWidth = (i === 3 ? 3 : 4);
-          ds.pointRadius = 2;
-          if (i < 3) ds.backgroundColor = 'transparent';
-        });
-        chart.data.datasets[3].hidden = false; // show Total
-      } else {
-        chart.config.type = 'bar';
-        const stacked = (mode === 'bar-stacked');
-        x.stacked = stacked; y.stacked = stacked;
-        const fills = ['#1D70B8', '#d4351c', '#b1b4b6'];
-        chart.data.datasets.forEach((ds, i) => {
-          ds.type = 'bar';
-          ds.borderWidth = 0; ds.pointRadius = 0;
-          if (i < 3) ds.backgroundColor = fills[i];
-        });
-        chart.data.datasets[3].hidden = true; // hide Total in bar modes
-      }
-
-      if (typeBtn) {
-        const nextText =
-          (mode === 'line')        ? 'Switch to stacked bars' :
-          (mode === 'bar-stacked') ? 'Switch to grouped bars' :
-                                     'Switch to line chart';
-        typeBtn.textContent = nextText;
-      }
-
-      chart.update();
-      requestAnimationFrame(() => chart.resize());
-    }
+  
 
     function buildRows() { return buildEventRows(DATA, rangeDays, minDuration); }
 
@@ -548,26 +505,12 @@ function ensureChart(canvas) {
       });
     });
 
-    if (typeBtn) {
-      typeBtn.addEventListener('click', () => {
-        const mode = chartMode;
-        const next = (mode === 'line') ? 'bar-stacked'
-                  : (mode === 'bar-stacked') ? 'bar-grouped'
-                  : 'line';
-        chartMode = next;
-        setChartMode(next);
-      });
-    }
 
     // ---- first paint (guaranteed non-blank) ----
-    setChartMode(chartMode || 'line');   // apply saved mode or line
     renderChartAndUI();                  // paints Line • 7 days • All durations
 
     const tableWrap = document.getElementById('curfew-table-wrap');
     if (tableWrap) {
-      // Toggle a wrapper class based on the feature flag
-      tableWrap.classList.toggle('bh-hide-pending', !!HIDE_PENDING);
-
       // Keep your original behavior
       if (!tableWrap.hasAttribute('hidden')) {
         renderCurfewTableFromCurrent(1);

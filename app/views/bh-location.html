@@ -59,7 +59,7 @@
 
 {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
 
-<h3 class="govuk-heading-s">1. Search map by date and time</h3>
+<h3 class="govuk-heading-s">Search map by date and time</h3>
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="bh-map-filters" class="loi-filters__form" novalidate>
@@ -157,7 +157,99 @@
   <p class="govuk-body-s"><a href="map-help">Help with the map</a></p>
 </div>
 
-<h3 class="govuk-heading-s govuk-!-margin-bottom-0" id="filter-by-loi">2. Or filter by location</h3>
+
+<h3 class="govuk-heading-s govuk-!-margin-bottom-0" id="filter-by-loi">Overnight behaviour, last 7 nights</h3>
+
+      {% call govukInsetText({ classes: "govuk-!-margin-0 guidance-panel" }) %}
+
+      <h3 class="govuk-heading-s" id="map-header">Recent activity</h3>
+      <p class="govuk-body">Richard Marks spent 4 of the past 7 nights at home.</p>
+      <p class="govuk-body">They were away from home overnight on the following occasions:</p>
+      <ul class="govuk-list govuk-list--bullet">
+        <li>1:05am to 1:36am on Friday 17 October 2025</li>
+        <li>1am to 2am on Saturday 18 October 2025</li>
+        <li>4:30am to 6:31am on Sunday 19 October 2025</li>
+      </ul>
+      {% endcall %}
+
+{{ govukTable({
+  attributes: {
+    "data-module": "moj-sortable-table"
+  },
+  caption: "Time spent away from home overnight (Midnight to 6am)",
+  head: [
+    {
+      text: "Date"
+    },
+    {
+      text: "Location type"
+    },
+    {
+      text: "Address"
+    },
+    {
+      text: "Time"
+    },
+    {
+      text: "View on map"
+    }
+  ],
+  rows: [
+    [
+      {
+        html: "Friday 17 Oct 2025<br/><a href='#' class='govuk-link'>Send to NDelius</a>"
+      },
+      {
+        text: "Unknown"
+      },
+      {
+        html: "42 Turnstile Square<br/>ColchesterCO2 7HQ"
+      },
+      {
+        html: "1:05am to 1:36am<br/>(31 mins)"
+      },
+      {
+       html: '<a href="#" class="plot-link govuk-link">View</a>'
+      }
+    ],
+    [
+      {
+        html: "Saturday 18 Oct 2025<br/><a href='#' class='govuk-link'>Send to NDelius</a>"
+      },
+      {
+        text: "Partners house"
+      },
+      {
+        html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR"
+      },
+      {
+        html: "1am to 2am<br/>(1 hour)"
+      },
+      {
+       html: '<a href="#" class="plot-link govuk-link">View</a>'
+      }
+    ],
+    [
+      {
+        html: "Sunday 19 Oct 2025<br/><a href='#' class='govuk-link'>Send to NDelius</a>"
+      },
+      {
+        text: "Partners house"
+      },
+      {
+        html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR"
+      },
+      {
+        html: "4:30am - 6:31am<br/>(2 hours 1 min)"
+      },
+      {
+       html: '<a href="#" class="plot-link govuk-link">View</a>'
+      }
+    ]
+  ]
+}) }}
+
+<h3 class="govuk-heading-s govuk-!-margin-bottom-0" id="filter-by-loi">Visits to specific locations of interest</h3>
 <p class="govuk-body">You can check if the person on probation has been to certain locations that may be relevant to their licence conditions.</p>
 <p class="govuk-body"><a href="bh-manage-locations" class="govuk-link">Manage locations of interest</a></p>
 

@@ -53,6 +53,37 @@
 
   <div class="govuk-grid-column-full">
 
+    <h2 class="govuk-heading-m govuk-!-margin-bottom-3">Manage locations of interest</h2>
+
+      {# --- Section 1: Custom LOIs --- #}
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-2">Add new locations of interest</h3>
+      <p class="govuk-body govuk-!-margin-top-2">
+        Search by postcode or enter the address manually.
+      </p>
+
+      {{ govukInsetText({
+        html: "<b>Please note:</b> it can take up to 24 hours for a new location to appear on the map"
+      }) }}
+
+      {% if data.selectedAddress %}
+        {% set _inset = "" %}
+        {% if data.loiName and (data.loiName | length) %}
+          {% set _inset = _inset ~ "<strong>" ~ (data.loiName | escape) ~ "</strong><br>" %}
+        {% endif %}
+        {% set _inset = _inset ~ (data.selectedAddress | replace(", ", "<br>")) %}
+
+        {# Delete: use a link so we don't nest a form inside this form #}
+        {% set _inset = _inset ~ "<p class='govuk-!-margin-top-4'><a href='/loi/clear' class='govuk-link'>Delete</a></p>" %}
+
+        <div id="loi-inset">
+          {{ govukInsetText({ html: _inset }) }}
+        </div>
+      {% endif %}
+
+      <p class="govuk-body" style="margin-bottom: 60px;">
+        <a href="add-location1" class="govuk-link">Add new location of interest</a>
+      </p>
+
     {# ONE FORM WRAPS EVERYTHING #}
     <form method="post" action="/bh-manage-locations" novalidate>
 
@@ -72,7 +103,7 @@
   name: "loiTypes",
   fieldset: {
     legend: {
-      text: "Manage locations of interest",
+      text: "Location display options",
       isPageHeading: true,
       classes: "govuk-fieldset__legend--m"
     }
@@ -111,35 +142,6 @@
           }
         ]
       }) }}
-
-      {# --- Section 3: Custom LOIs --- #}
-      <h3 class="govuk-heading-m govuk-!-margin-bottom-2">Add specific locations of interest</h3>
-      <p class="govuk-body govuk-!-margin-top-2">
-        Search by postcode or enter the address manually.
-      </p>
-
-{{ govukInsetText({
-  html: "<b>Please note:</b> it can take up to 24 hours for a new location to appear on the map"
-}) }}
-
-      {% if data.selectedAddress %}
-        {% set _inset = "" %}
-        {% if data.loiName and (data.loiName | length) %}
-          {% set _inset = _inset ~ "<strong>" ~ (data.loiName | escape) ~ "</strong><br>" %}
-        {% endif %}
-        {% set _inset = _inset ~ (data.selectedAddress | replace(", ", "<br>")) %}
-
-        {# Delete: use a link so we don't nest a form inside this form #}
-        {% set _inset = _inset ~ "<p class='govuk-!-margin-top-4'><a href='/loi/clear' class='govuk-link'>Delete</a></p>" %}
-
-        <div id="loi-inset">
-          {{ govukInsetText({ html: _inset }) }}
-        </div>
-      {% endif %}
-
-      <p class="govuk-body" style="margin-bottom: 60px;">
-        <a href="add-location1" class="govuk-link">Add new location of interest</a>
-      </p>
 
       <div class="govuk-button-group">
         {{ govukButton({ text: "Save changes", type: "submit" }) }}

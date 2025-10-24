@@ -158,25 +158,26 @@
 </div>
 
 
-<h3 class="govuk-heading-s govuk-!-margin-bottom-0" id="filter-by-loi">Overnight behaviour, last 7 nights</h3>
+<h3 class="govuk-heading-s govuk-!-margin-bottom-0" id="filter-by-loi">Overnight activity, last 7 nights</h3>
 
       {% call govukInsetText({ classes: "govuk-!-margin-0 guidance-panel" }) %}
 
       <h3 class="govuk-heading-s" id="map-header">Recent activity</h3>
       <p class="govuk-body">Richard Marks spent 4 of the past 7 nights at home.</p>
-      <p class="govuk-body">They were away from home overnight on the following occasions:</p>
+      <p class="govuk-body">They were <strong>away from home during the night</strong> on the following occasions:</p>
       <ul class="govuk-list govuk-list--bullet">
-        <li>1:05am to 1:36am on Friday 17 October 2025</li>
-        <li>1am to 2am on Saturday 18 October 2025</li>
-        <li>4:30am to 6:31am on Sunday 19 October 2025</li>
+        <li>From 1:05am to 1:36am on Friday 17 October 2025</li>
+        <li>From 1am to 2am on Saturday 18 October 2025</li>
+        <li>From 4:30am to 6:31am on Sunday 19 October 2025</li>
       </ul>
       {% endcall %}
 
 {{ govukTable({
   attributes: {
+    id: "bh-overnight-table",
     "data-module": "moj-sortable-table"
   },
-  caption: "Time spent away from home overnight (Midnight to 6am)",
+  caption: "Time spent away from home during the night (Midnight to 6am)",
   head: [
     {
       text: "Date"
@@ -217,7 +218,7 @@
         html: "Saturday 18 Oct 2025<br/><a href='#' class='govuk-link'>Send to NDelius</a>"
       },
       {
-        text: "Partners house"
+        text: "Partner's house"
       },
       {
         html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR"
@@ -234,13 +235,13 @@
         html: "Sunday 19 Oct 2025<br/><a href='#' class='govuk-link'>Send to NDelius</a>"
       },
       {
-        text: "Partners house"
+        text: "Partner's house"
       },
       {
         html: "46-6 Rainsborowe Rd<br/>Colchester<br/>CO2 7JR"
       },
       {
-        html: "4:30am - 6:31am<br/>(2 hours 1 min)"
+        html: "4:30am to 6:31am<br/>(2 hours 1 min)"
       },
       {
        html: '<a href="#" class="plot-link govuk-link">View</a>'
@@ -251,7 +252,11 @@
 
 <h3 class="govuk-heading-s govuk-!-margin-bottom-0" id="filter-by-loi">Visits to specific locations of interest</h3>
 <p class="govuk-body">You can check if the person on probation has been to certain locations that may be relevant to their licence conditions.</p>
-<p class="govuk-body"><a href="bh-manage-locations" class="govuk-link">Manage locations of interest</a></p>
+
+{{ govukInsetText({
+  html: "<p class='govuk-body'><a href='bh-manage-locations' class='govuk-link'>Manage locations of interest</a></p>"
+}) }}
+
 
 <div class="loi-filters govuk-!-margin-bottom-3">
   <form id="loi-filters" class="loi-filters__form" novalidate data-tag-fitted="2025-06-08">

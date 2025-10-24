@@ -263,68 +263,131 @@ function buildEventRows(dataset, rangeDays, minDuration) {
     renderPager(pagerEl, totalPages, current);
   }
 
-    // Alternating background stripes per day/category
-    const dayBandingPlugin = {
-      id: 'dayBanding',
-      beforeDraw(chart, _args, opts) {
-        const { enabled = true, oddFill = 'rgba(0,0,0,0.035)', evenFill = null } = opts || {};
-        if (!enabled) return;
+// ---------- Day bands as a DOM layer (always behind the canvas) ----------
+const dayBandsDOMPlugin = {
+  id: 'dayBandsDOM',
 
-        const x = chart.scales.x;
-        const y = chart.scales.y;
-        if (!x || !y) return;
+  _ensureLayer(chart) {
+    const holder = chart.canvas.parentNode; // Chart.js wraps the canvas in a div
+    if (!holder) return null;
 
-        const { left, right, top, bottom } = chart.chartArea;
-        const ctx = chart.ctx;
+    // Make the holder a positioning context
+    if (!holder.style.position) holder.style.position = 'relative';
 
-        // Helper: mid-point between two pixel positions
-        const mid = (a, b) => (a + b) / 2;
+    // Ensure the canvas is explicitly ABOVE the band layer
+    if (!chart.canvas.style.position) chart.canvas.style.position = 'relative';
+    chart.canvas.style.zIndex = '1';
 
-        // Build band edges by taking midpoints between tick centers
-        const centers = x.ticks.map((_, i) => x.getPixelForTick(i));
-        if (!centers.length) return;
+    // Create or reuse the band layer (z-index below the canvas)
+    let layer = holder.querySelector('.curfew-day-bands');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.className = 'curfew-day-bands';
+      Object.assign(layer.style, {
+        position: 'absolute',
+        pointerEvents: 'none',
+        zIndex: '0'     // canvas is zIndex: 1
+      });
+      // Insert *before* the canvas so DOM order also keeps it below
+      holder.insertBefore(layer, chart.canvas);
+    } else {
+      layer.style.zIndex = '0';
+    }
+    return layer;
+  },
 
-        const edges = [];
-        // Left edge = halfway from first center to chartArea.left
-        edges.push(mid(left, centers[0]));
-        for (let i = 0; i < centers.length - 1; i++) {
-          edges.push(mid(centers[i], centers[i + 1]));
-        }
-        // Right edge = halfway from last center to chartArea.right
-        edges.push(mid(centers[centers.length - 1], right));
+  afterRender(chart, _args, opts) {
+    const { enabled = true, shade = 'rgba(0,0,0,0.03)' } = opts || {};
+    if (!enabled) return;
 
-        ctx.save();
-        for (let i = 0; i < centers.length; i++) {
-          const x0 = edges[i];
-          const x1 = edges[i + 1];
-          const fill = (i % 2 === 0) ? evenFill : oddFill;
-          if (!fill) continue;
-          ctx.fillStyle = fill;
-          ctx.fillRect(x0, top, x1 - x0, bottom - top);
-        }
-        ctx.restore();
-      }
-    };
+    const area = chart.chartArea;
+    const x    = chart.scales?.x;
+    if (!area || !x) return;
+
+    const layer = this._ensureLayer(chart);
+    if (!layer) return;
+
+    // Robust per-day width using the scale (works even before datasets animate in)
+    const tickCount = (x.ticks || []).length;
+    const catW = (tickCount >= 2)
+      ? Math.max(1, Math.round(x.getPixelForTick(1) - x.getPixelForTick(0)))
+      : Math.max(1, Math.round((area.right - area.left) / Math.max(1, (chart.data?.labels?.length || 1))));
+
+    // Align the first band to the midpoint before tick 0
+    const firstCentre = x.getPixelForTick(0);
+    const leftEdge    = Math.round(firstCentre - catW / 2);
+
+    // Position layer to the plotting area and paint alternating 50/50 bands
+    Object.assign(layer.style, {
+      left:   area.left   + 'px',
+      top:    area.top    + 'px',
+      width:  (area.right - area.left) + 'px',
+      height: (area.bottom - area.top) + 'px',
+      backgroundImage: `repeating-linear-gradient(
+        90deg,
+        ${shade}, ${shade} ${catW/2}px,
+        transparent ${catW/2}px, transparent ${catW}px
+      )`,
+      backgroundPositionX: (leftEdge - area.left) + 'px',
+      backgroundRepeat: 'repeat'
+    });
+  }
+};
+
+// ---------- Minor x-axis ticks (one per day, skip labelled/major ticks) ----------
+const minorXTicksPlugin = {
+  id: 'minorXTicks',
+  afterDraw(chart, _args, opts) {
+    const { enabled = true, length = 4, color = 'rgba(0,0,0,0.25)' } = opts || {};
+    if (!enabled) return;
+
+    const meta = chart.getDatasetMeta(0);
+    const pts  = meta?.data;
+    const x    = chart.scales?.x;
+    const y    = chart.scales?.y;
+    if (!pts || !pts.length || !x || !y) return;
+
+    // Pixel positions of majors (labelled ticks)
+    const majorPx = (x.ticks || []).map((_, i) => Math.round(x.getPixelForTick(i)));
+    const nearMajor = (px) => majorPx.some(m => Math.abs(m - px) <= 1); // 1px tolerance
+
+    const { bottom } = chart.chartArea;
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < pts.length; i++) {
+      const px = Math.round(pts[i].x);
+      if (nearMajor(px)) continue; // skip where a major exists
+      ctx.beginPath();
+      ctx.moveTo(px + 0.5, bottom);
+      ctx.lineTo(px + 0.5, bottom + length);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+};
 
 
-  // ---------- Chart.js setup with reduced-motion guard ----------
+
+
+// ---------- Chart.js setup with reduced-motion guard ----------
 function ensureChart(canvas) {
   if (!canvas || typeof Chart === 'undefined') return null;
   const existing = Chart.getChart ? Chart.getChart(canvas) : null;
   if (existing) return existing;
 
-  // Respect OS-level reduced motion preference
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
   const reducedMotion = mq.matches;
 
   const chart = new Chart(canvas.getContext('2d'), {
-    type: 'bar', // ← grouped bars only
+    type: 'bar',
     data: {
       labels: [],
       datasets: [
-        // two bar datasets; no "Total" dataset here
-        { key: 'reasonable',   label: 'Reasonable',   type: 'bar', data: [], borderWidth: 0, pointRadius: 0, backgroundColor: '#0070b3' },
-        { key: 'unreasonable', label: 'Unreasonable', type: 'bar', data: [], borderWidth: 0, pointRadius: 0, backgroundColor: '#d4351c' }
+        { key: 'reasonable',   label: 'Reasonable',   type: 'bar', data: [], backgroundColor: '#0070b3', borderWidth: 0, pointRadius: 0, borderRadius: 3, categoryPercentage: 0.85, barPercentage: 0.9 },
+        { key: 'unreasonable', label: 'Unreasonable', type: 'bar', data: [], backgroundColor: '#d4351c', borderWidth: 0, pointRadius: 0, borderRadius: 3, categoryPercentage: 0.85, barPercentage: 0.9 }
       ]
     },
     options: {
@@ -332,17 +395,25 @@ function ensureChart(canvas) {
       maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       scales: {
-        x: { stacked: false, ticks: { maxTicksLimit: 10, autoSkip: true } },
-        y: { stacked: false, beginAtZero: true, title: { display: true, text: 'Minutes' } }
+        x: {
+          stacked: false,
+          ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 10, font: { size: 13 } },
+          // show axis line, no vertical grid, let plugins do banding + ticks
+          grid: { display: true, drawOnChartArea: false, drawTicks: true, tickLength: 6 }
+        },
+        y: {
+          stacked: false,
+          beginAtZero: true,
+          title: { display: true, text: 'Minutes' },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        }
       },
       plugins: {
-        legend: {
-          position: 'top',
-          labels: { usePointStyle: true }
-        },
-        tooltip: {
-          animation: !reducedMotion
-        }
+        // background stripes per day
+        dayBandsDOM: { enabled: true, shade: 'rgba(0,0,0,0.03)' },
+        minorXTicks: { enabled: true, length: 4, color: 'rgba(0,0,0,0.25)' },
+        legend: { position: 'top', labels: { usePointStyle: true } },
+        tooltip: { animation: !reducedMotion }
       },
       animation: { duration: reducedMotion ? 0 : 400 },
       transitions: reducedMotion ? {
@@ -351,10 +422,11 @@ function ensureChart(canvas) {
         show:   { animation: { duration: 0 } },
         hide:   { animation: { duration: 0 } }
       } : undefined
-    }
+    },
+    // register both custom plugins
+    plugins: [dayBandsDOMPlugin, minorXTicksPlugin]
   });
 
-  // React to OS setting changes
   if (typeof mq.addEventListener === 'function') {
     mq.addEventListener('change', (e) => {
       const reduce = e.matches;
@@ -372,7 +444,6 @@ function ensureChart(canvas) {
 
   return chart;
 }
-
 
 
 

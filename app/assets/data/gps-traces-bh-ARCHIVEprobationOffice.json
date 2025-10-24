@@ -2564,6 +2564,257 @@
     }
   ]
 },
+  "probation-office": {
+    "meta": {
+      "description": "Colchester Probation Service – Portal House visit",
+      "point_count": 30
+    },
+    "points": [
+      {
+        "lat": 51.88972,
+        "lng": 0.899758,
+        "label": "1",
+        "accuracy": 39,
+        "time": "10:00"
+      },
+      {
+        "lat": 51.887051,
+        "lng": 0.894806,
+        "accuracy": 18,
+        "time": "09:03",
+        "label": "2"
+      },
+      {
+        "lat": 51.887077,
+        "lng": 0.894773,
+        "accuracy": 25,
+        "time": "09:03",
+        "label": "3"
+      },
+      {
+        "lat": 51.887073,
+        "lng": 0.894715,
+        "accuracy": 21,
+        "time": "09:03",
+        "label": "4"
+      },
+      {
+        "lat": 51.887106,
+        "lng": 0.894829,
+        "accuracy": 23,
+        "time": "09:03",
+        "label": "5"
+      },
+      {
+        "lat": 51.887127,
+        "lng": 0.894725,
+        "accuracy": 9,
+        "time": "09:03",
+        "label": "6"
+      },
+      {
+        "lat": 51.887062,
+        "lng": 0.894658,
+        "accuracy": 13,
+        "time": "09:03",
+        "label": "7"
+      },
+      {
+        "lat": 51.887073,
+        "lng": 0.894578,
+        "accuracy": 8,
+        "time": "09:03",
+        "label": "8"
+      },
+      {
+        "lat": 51.887091,
+        "lng": 0.894519,
+        "accuracy": 33,
+        "time": "09:03",
+        "label": "9"
+      },
+      {
+        "lat": 51.887124,
+        "lng": 0.894612,
+        "accuracy": 26,
+        "time": "09:03",
+        "label": "10"
+      },
+      {
+        "lat": 51.887104,
+        "lng": 0.89467,
+        "accuracy": 39,
+        "time": "09:03",
+        "label": "11"
+      },
+      {
+        "lat": 51.887103,
+        "lng": 0.894534,
+        "accuracy": 23,
+        "time": "09:03",
+        "label": "12"
+      },
+      {
+        "lat": 51.887109,
+        "lng": 0.894607,
+        "accuracy": 16,
+        "time": "09:03",
+        "label": "13"
+      },
+      {
+        "lat": 51.887079,
+        "lng": 0.89456,
+        "accuracy": 21,
+        "time": "09:03",
+        "label": "14"
+      },
+      {
+        "lat": 51.887137,
+        "lng": 0.894617,
+        "accuracy": 29,
+        "time": "09:03",
+        "label": "15"
+      },
+      {
+        "lat": 51.888065,
+        "lng": 0.896303,
+        "label": "16",
+        "accuracy": 18,
+        "time": "10:20"
+      },
+      {
+        "lat": 51.887588,
+        "lng": 0.895627,
+        "label": "17",
+        "accuracy": 36,
+        "time": "10:22"
+      },
+      {
+        "lat": 51.887469,
+        "lng": 0.895917,
+        "label": "18",
+        "accuracy": 15,
+        "time": "10:25"
+      },
+      {
+        "lat": 51.886932,
+        "lng": 0.895327,
+        "label": "19",
+        "accuracy": 21,
+        "time": "10:28"
+      },
+      {
+        "lat": 51.887142,
+        "lng": 0.89467,
+        "label": "20",
+        "accuracy": 4,
+        "time": "10:31"
+      },
+      {
+        "lat": 51.88711,
+        "lng": 0.89473,
+        "label": "21",
+        "accuracy": 15,
+        "time": "10:34"
+      },
+      {
+        "lat": 51.88708,
+        "lng": 0.89461,
+        "label": "22",
+        "accuracy": 3,
+        "time": "10:37"
+      },
+      {
+        "lat": 51.88715,
+        "lng": 0.89456,
+        "label": "23",
+        "accuracy": 21,
+        "time": "10:40"
+      },
+      {
+        "lat": 51.887244,
+        "lng": 0.892655,
+        "label": "24",
+        "accuracy": 26,
+        "time": "10:42"
+      },
+      {
+        "lat": 51.887528,
+        "lng": 0.890606,
+        "label": "25",
+        "accuracy": 18,
+        "time": "10:45"
+      },
+      {
+        "lat": 51.887648,
+        "lng": 0.889233,
+        "label": "26",
+        "accuracy": 5,
+        "time": "10:48"
+      },
+      {
+        "lat": 51.887621,
+        "lng": 0.888235,
+        "label": "27",
+        "accuracy": 14,
+        "time": "10:51"
+      },
+      {
+        "lat": 51.88678,
+        "lng": 0.888149,
+        "label": "28",
+        "accuracy": 37,
+        "time": "10:54"
+      },
+      {
+        "lat": 51.886025,
+        "lng": 0.888106,
+        "label": "29",
+        "accuracy": 21,
+        "time": "10:57"
+      },
+      {
+        "lat": 51.886131,
+        "lng": 0.88757,
+        "label": "30",
+        "accuracy": 14,
+        "time": "11:00"
+      }
+    ],
+    "areas": [
+      {
+        "label": "Colchester Probation Service, Portal House, 27 Southway, Colchester, CO2 7BA",
+        "type": "Probation office",
+        "timeanddate": "Monday 22 September 2025, 9:03am to 9:33am",
+        "notesHeading": "Mixed-use building:",
+        "buildingFunctions": [
+          "Ground: Retail",
+          "1st floor: Offices",
+          "2nd floor: Residential",
+          "3rd floor: Residential",
+          "(Data © Ordnance Survey. Last updated 09/2025)"
+        ],
+        "coordinates": [
+          {
+            "lat": 51.887198,
+            "lng": 0.894521
+          },
+          {
+            "lat": 51.887163,
+            "lng": 0.894864
+          },
+          {
+            "lat": 51.887022,
+            "lng": 0.894829
+          },
+          {
+            "lat": 51.887059,
+            "lng": 0.894494
+          }
+        ]
+      }
+    ]
+  },
   "swimming-pool": {
     "meta": {
       "description": "Leisure World Colchester session",

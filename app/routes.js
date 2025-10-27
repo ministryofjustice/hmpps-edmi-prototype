@@ -159,17 +159,17 @@ router.get('/loi/clear', function (req, res) {
 
 // Manage Locations form submission
 router.post('/bh-manage-locations', function (req, res) {
-  let { loiTypes } = req.body;   // read from the form body, not the old session
+  const raw = req.body['loiTypes[]'] ?? req.body.loiTypes;
+  const list = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+  req.session.data.loiTypes = list;
 
-  if (!loiTypes) {
-    loiTypes = []; // nothing ticked
-  } else if (!Array.isArray(loiTypes)) {
-    loiTypes = [loiTypes]; // single value case
-  }
+  const outside = req.body['outsideUk[]'] ?? req.body.outsideUk;
+  req.session.data.outsideUk = Array.isArray(outside) ? outside : (outside ? [outside] : []);
 
-  req.session.data.loiTypes = loiTypes;
+  // go back to the manage page (you can change to bh-location if preferred)
   return res.redirect('/bh-location');
 });
+
 
 
 // POST: add address manually

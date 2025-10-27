@@ -71,14 +71,19 @@
           {% set _inset = _inset ~ "<strong>" ~ (data.loiName | escape) ~ "</strong><br>" %}
         {% endif %}
         {% set _inset = _inset ~ (data.selectedAddress | replace(", ", "<br>")) %}
-
-        {# Delete: use a link so we don't nest a form inside this form #}
         {% set _inset = _inset ~ "<p class='govuk-!-margin-top-4'><a href='/loi/clear' class='govuk-link'>Delete</a></p>" %}
 
         <div id="loi-inset">
           {{ govukInsetText({ html: _inset }) }}
         </div>
+      {% else %}
+        <div id="loi-inset">
+          {{ govukInsetText({
+            html: "No personal locations have been added."
+          }) }}
+        </div>
       {% endif %}
+
 
       <p class="govuk-body" style="margin-bottom: 60px;">
         <a href="add-location1" class="govuk-link">Add new location of interest</a>
@@ -100,7 +105,7 @@
 {% set selectedTypes = data.loiTypes or ALL_LOI_TYPES %}
 
 {{ govukCheckboxes({
-  name: "loiTypes",
+  name: "loiTypes[]",
   fieldset: {
     legend: {
       text: "Location display options",
@@ -112,11 +117,12 @@
   items: [
     { value: "betting shops",     text: "Betting shops",      checked: ("betting shops" in selectedTypes) },
     { value: "places of worship", text: "Places of worship",  checked: ("places of worship" in selectedTypes) },
+    { value: "playgrounds",       text: "Playgrounds and play areas",  checked: ("playgrounds" in selectedTypes) },
     { value: "police stations",   text: "Police stations",    checked: ("police stations" in selectedTypes) },
     { value: "probation offices", text: "Probation offices",  checked: ("probation offices" in selectedTypes) },
-    { value: "pubs",              text: "Pubs",               checked: ("pubs" in selectedTypes) },
-    { value: "schools",           text: "Schools",            checked: ("schools" in selectedTypes) },
-    { value: "swimming pools",    text: "Swimming pools",     checked: ("swimming pools" in selectedTypes) }
+    { value: "pubs",              text: "Pubs, bars and clubs",               checked: ("pubs" in selectedTypes) },
+    { value: "schools",           text: "Schools and nurseries",            checked: ("schools" in selectedTypes) },
+    { value: "swimming pools",    text: "Swimming pools and leisure centres",     checked: ("swimming pools" in selectedTypes) }
   ]
 }) }}
 

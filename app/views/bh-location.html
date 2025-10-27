@@ -281,11 +281,11 @@
   { value: "anywhere outside the uk", label: "Anywhere outside the UK" },
   { value: "betting shops",           label: "Betting shops" },
   { value: "places of worship",       label: "Places of worship" },
+  { value: "playgrounds",          label: "Playgrounds and play areas" },
   { value: "police stations",         label: "Police stations" },
   { value: "pubs",                    label: "Pubs, bars and clubs" },
   { value: "schools",                 label: "Schools and nurseries" },
-  { value: "swimming pools",          label: "Swimming pools and leisure centres" },
-  { value: "playgrounds",          label: "Playgrounds and play areas" }
+  { value: "swimming pools",          label: "Swimming pools and leisure centres" }  
 ] %}
 
 
@@ -334,8 +334,8 @@
 
 {% set start = startIndex or 0 %}
 
-{# 1) Build the base rows (unchanged existing rows) #}
-{% set rows = [
+{# 1) Build the base rows #}
+{% set loiRows = [
   [
     {
       text: loiDates[start + 0].text,
@@ -345,7 +345,7 @@
         + '">Send to NDelius</a>',
       attributes: { "data-sort-value": loiDates[start + 0].iso }
     },
-    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "Pubs" } },
+    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "pubs" } },
     { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
     { html: "2:19pm to 7:59pm<br/>(5 hours 40 mins)", attributes: { "data-sort-value": "340" } },
     { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-1">View</a>' }
@@ -373,8 +373,8 @@
         + '">Send to NDelius</a>',
       attributes: { "data-sort-value": loiDates[start + 2].iso }
     },
-    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "Pubs" } },
-    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
+    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "pubs" } },
+    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
     { html: "11:12am to 1:27pm<br/>(2 hours 15 mins)", attributes: { "data-sort-value": "135" } },
     { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View</a>' }
   ],
@@ -415,24 +415,10 @@
         + '">Send to NDelius</a>',
       attributes: { "data-sort-value": loiDates[start + 6].iso }
     },
-    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "Pubs" } },
+    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "pubs" } },
     { html: "Kings Arms<br/>61-63 Crouch Street<br/>Colchester<br/>CO3 3EY" },
     { html: "11:38pm to 11:59pm<br/>(21 mins)", attributes: { "data-sort-value": "21" } },
     { html: '<a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View</a>' }
-  ],
-  [
-    {
-      text: loiDates[start + 7].text,
-      html: (loiDates[start + 7].html | safe)
-        + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-2&amp;date='
-        + loiDates[start + 7].iso
-        + '">Send to NDelius</a>',
-      attributes: { "data-sort-value": loiDates[start + 7].iso }
-    },
-    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "Pubs" } },
-    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-    { html: "7:32pm to 11:05pm<br/>(3 hours 33 mins)", attributes: { "data-sort-value": "213" } },
-    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-2">View</a>' }
   ],
   [
     {
@@ -443,28 +429,14 @@
         + '">Send to NDelius</a>',
       attributes: { "data-sort-value": loiDates[start + 8].iso }
     },
-    { text: "Betting shops", attributes: { "data-sort-value": "Betting shops" } },
-    { html: "Ladbrokes<br/>41, 42 St Botolph&#39;s St<br/>Colchester<br/>CO2 7EA" },
+    { text: "Betting shops", attributes: { "data-sort-value": "betting shops" } },
+    { html: "Ladbrokes<br/>41, 42 St Botolph's St<br/>Colchester<br/>CO2 7EA" },
     { html: "1:34pm to 2:13pm<br/>(39 mins)", attributes: { "data-sort-value": "39" } },
     { html: '<a href="#" class="plot-link govuk-link" data-trace="ladbrokes">View</a>' }
-  ],
-  [
-    {
-      text: loiDates[start + 9].text,
-      html: (loiDates[start + 9].html | safe)
-        + '<br><a class="govuk-link" href="ndelius-record?trace=fusilier-3&amp;date='
-        + loiDates[start + 9].iso
-        + '">Send to NDelius</a>',
-      attributes: { "data-sort-value": loiDates[start + 9].iso }
-    },
-    { text: "Pubs, bars and clubs", attributes: { "data-sort-value": "Pubs" } },
-    { html: "The Fusilier Bar & Restaurant<br/>Aingers Green Rd<br/>Aingers Green<br/>Great Bentley<br/>Colchester<br/>CO7 8NH" },
-    { html: "9:45pm to 11:59pm<br/>(2 hours 14 mins)", attributes: { "data-sort-value": "134" } },
-    { html: '<a href="#" class="plot-link govuk-link" data-trace="fusilier-3">View</a>' }
   ]
 ] %}
 
-{# 2) Optionally append the Custom row if user added an address #}
+{# 2) Append custom LOI if one exists #}
 {% if data.selectedAddress and (data.selectedAddress | length) %}
   {% if data.loiName and (data.loiName | length) %}
     {% set customType = data.loiName %}
@@ -487,10 +459,22 @@
     { html: '<a href="#" class="plot-link govuk-link" data-trace="finch-road">View</a>' }
   ] %}
 
-  {% set rows = rows.concat([customRow]) %}
+  {% set loiRows = loiRows.concat([customRow]) %}
 {% endif %}
 
-{# 3) Render the table with the computed rows #}
+
+{# 3) Filter rows by the user’s selected LOI types #}
+{% set allowedTypes = data.loiTypes or [] %}
+{% set visibleRows = [] %}
+
+{% for row in loiRows %}
+  {% set rowType = row[1].attributes["data-sort-value"] | lower %}
+  {% if not (allowedTypes and allowedTypes | length) or (rowType in allowedTypes) %}
+    {% set visibleRows = visibleRows.concat([row]) %}
+  {% endif %}
+{% endfor %}
+
+{# 4) Render the table #}
 {{ govukTable({
   attributes: { id: "bh-loi-table", "data-module": "moj-sortable-table" },
   head: [
@@ -500,7 +484,7 @@
     { text: "Time", attributes: { "aria-sort": "none" }, classes: "no-wrap" },
     { text: "View on map" }
   ],
-  rows: rows
+  rows: visibleRows
 }) }}
 
 
@@ -523,9 +507,6 @@
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<!-- Table filtering -->
-<script src="/public/javascripts/loi-filters.js"></script>
-
 <!-- Duration calculator -->
 <script src="/public/javascripts/duration-helper.js"></script>
 
@@ -539,6 +520,9 @@
 <script src="/public/javascripts/gps-map.js"></script>
 <script src="/public/javascripts/bh-update-map.js"></script>
 <script src="/public/javascripts/bh-loi-to-map-sync.js"></script>
+
+<!-- Table filtering -->
+<script src="/public/javascripts/loi-filters.js"></script>
 
 <script>
   // Enhancements only — map is created in /public/javascripts/bh-location-init.js

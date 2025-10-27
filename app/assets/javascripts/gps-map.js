@@ -17,12 +17,56 @@
     setTimeout(() => whenMapReady(cb, tries - 1), 50);
   }
 
-  // ---------- per-page config with sensible defaults ----------
-  const CFG = Object.assign({
-    DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
-    SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-oct.json',
-    DEFAULT_SCENARIO_KEY: 'bh_20250903'
-  }, (window.GPS_CONFIG || {}));
+// ---------- per-page config with sensible defaults ----------
+const CFG = Object.assign({
+  DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
+  SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-oct22.json',
+  DEFAULT_SCENARIO_KEY: 'bh_20251022'   // safe fallback string
+}, (window.GPS_CONFIG || {}));
+
+// Make available to other files
+window.CFG = CFG;
+
+// add near your CFG block
+const MINI_POINTS = (CFG.MINI_TRACE_POINTS || 5);
+
+// --- first-load mini trace (latest N points) ---
+whenMapReady(async () => {
+  if (window.__bh_initial_plotted) return;
+  window.__bh_initial_plotted = true;
+
+  try {
+    const data = await (await fetch(CFG.SCENARIOS_URL, { cache: 'no-store' })).json();
+    const base = data[CFG.DEFAULT_SCENARIO_KEY];
+    if (!base || !Array.isArray(base.points) || base.points.length === 0) {
+      console.warn('[gps-map] scenario missing or empty; plotting fallback default');
+      await plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
+        scrollToMap: false,
+        highlightRowEl: null,
+        dataUrl: CFG.SCENARIOS_URL
+      });
+      return;
+    }
+
+    // Take the last N points by index (not by time window)
+    const pts = base.points.slice(-MINI_POINTS);
+    const mini = { ...base, points: pts };
+
+    await window.plotTraceObject(mini, {
+      scrollToMap: false,
+      highlightRowEl: null
+    });
+  } catch (e) {
+    console.warn('[gps-map] mini-trace preload failed; plotting fallback:', e);
+    await plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
+      scrollToMap: false,
+      highlightRowEl: null,
+      dataUrl: CFG.SCENARIOS_URL
+    });
+  }
+});
+
+
 
   // Convert HTML like "Wednesday 3 September<br/>2025" to "Wednesday 3 September 2025"
   function htmlToPlain(html) {
@@ -645,14 +689,97 @@ if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
       });
     });
 
-    // 2) Default scenario trace (no highlight, no scroll).
-    whenMapReady(() => {
-      plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
+
+// 2) Default “latest 5 minutes” mini-trace on first load
+whenMapReady(async () => {
+  try {
+    const scenariosUrl = CFG.SCENARIOS_URL;
+    const lib = await loadGpsData(scenariosUrl);
+    window.GPS_TRACES = lib; // expose for other modules
+
+    // Get all bh_YYYYMMDD keys sorted by date
+    const keys = Object.keys(lib).filter(k => /^bh_\d{8}$/.test(k))
+                                 .sort((a, b) => {
+                                   const da = new Date(`${a.slice(3,7)}-${a.slice(7,9)}-${a.slice(9,11)}T00:00:00Z`);
+                                   const db = new Date(`${b.slice(3,7)}-${b.slice(7,9)}-${b.slice(9,11)}T00:00:00Z`);
+                                   return da - db;
+                                 });
+
+    if (!keys.length) {
+      console.warn('[gps-map] No scenario keys found; plotting fallback.');
+      return plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
         scrollToMap: false,
         highlightRowEl: null,
-        dataUrl: CFG.SCENARIOS_URL
+        dataUrl: scenariosUrl
       });
+    }
+
+    const latestKey = keys.at(-1);
+    window.CFG.DEFAULT_SCENARIO_KEY = latestKey;
+
+    // Build a mini-trace: only points from the last N minutes of the latest day
+    const MINUTES = 5; // ← change to 4/5 as you like
+    const trace = lib[latestKey] || { points: [] };
+    const pts = Array.isArray(trace.points) ? trace.points.slice() : [];
+
+    // Find max timestamp, then keep points within [max - MINUTES, max]
+    const toDate = (p) => new Date(p.time);
+    const maxDate = pts.reduce((acc, p) => {
+      const d = toDate(p);
+      return isNaN(d) ? acc : (d > acc ? d : acc);
+    }, new Date(0));
+
+    const windowStart = new Date(maxDate.getTime() - MINUTES * 60 * 1000);
+    const mini = pts.filter(p => {
+      const d = toDate(p);
+      return !isNaN(d) && d >= windowStart && d <= maxDate;
     });
+
+    // If we somehow get fewer than 2 points, fall back to last 10 points
+    const pointsToPlot = (mini.length >= 2) ? mini
+                         : pts.slice(Math.max(0, pts.length - 10));
+
+    // Renumber labels 1..N and keep accuracy/time as-is
+    const miniTrace = {
+      meta: {
+        description: `Latest ${MINUTES} minutes from ${latestKey}`,
+        point_count: pointsToPlot.length
+      },
+      points: pointsToPlot.map((p, i) => ({
+        lat: p.lat, lng: p.lng,
+        label: String(i + 1),
+        accuracy: p.accuracy,
+        time: p.time
+      })),
+      areas: [] // none for the mini trace
+    };
+
+    // Plot just this compact trace
+    if (miniTrace.points.length >= 2) {
+      return window.plotTraceObject(miniTrace, {
+        scrollToMap: false,
+        highlightRowEl: null,
+        overrideDateText: '' // let popup use times only
+      });
+    }
+
+    // Fallback to single default if mini couldn't be built
+    plotTrace(latestKey, {
+      scrollToMap: false,
+      highlightRowEl: null,
+      dataUrl: scenariosUrl
+    });
+  } catch (e) {
+    console.warn('[gps-map] scenario preload failed; plotting single default:', e);
+    plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
+      scrollToMap: false,
+      highlightRowEl: null,
+      dataUrl: CFG.SCENARIOS_URL
+    });
+  }
+});
+
+
   });
 
   // ---------- dev helper: click map to log coords ----------

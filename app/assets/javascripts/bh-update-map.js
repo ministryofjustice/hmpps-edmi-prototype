@@ -7,7 +7,7 @@
   function getStr(el) { return (el && typeof el.value === 'string') ? el.value.trim() : ''; }
 
   // Expect gps-map.js to have set this:
-  const SCENARIOS_URL = window.__BH_SCENARIOS_URL || '/public/data/gps-traces-bh-demo-oct.json';
+  const SCENARIOS_URL = window.__BH_SCENARIOS_URL || '/public/data/gps-traces-bh-demo-oct22.json';
 
   // Parse dd/mm/yyyy -> { y, m, d } (numbers) and to iso yyyy-mm-dd
   function parseDMY(str) {
@@ -157,11 +157,13 @@
     if (form) form.reset();
     // After clear, default back to the “latest 5 mins” mini-trace on scenarios
     // (no highlight, no scroll)
-    window.plotTrace('bh_20250903', {
-      scrollToMap: false,
-      highlightRowEl: null,
-      dataUrl: SCENARIOS_URL
-    });
+    const defaultKey = (window.CFG?.DEFAULT_SCENARIO_KEY) || 'bh_20251022';
+window.plotTrace(defaultKey, {
+  scrollToMap: false,
+  highlightRowEl: null,
+  dataUrl: window.CFG?.SCENARIOS_URL || '/public/data/gps-traces-bh-demo-oct22.json'
+});
+
     const msg = $('#bh-filter-status');
     if (msg) msg.textContent = 'Filters cleared.';
   }

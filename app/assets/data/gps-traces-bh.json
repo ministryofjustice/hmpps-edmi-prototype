@@ -7322,6 +7322,38 @@
       }
     ]
   },
+    "overnight-2025-10-25": {
+    "meta": {
+      "description": "Overnight movement – Sat 25 Oct 2025",
+      "point_count": 5,
+      "dateIso": "2025-10-25"
+    },
+    "points": [
+  { "lat": 51.873702, "lng": 0.880837, "label": "1",  "accuracy": 9,  "time": "01:05" },
+  { "lat": 51.873358, "lng": 0.880516, "label": "2",  "accuracy": 7,  "time": "01:06" },
+  { "lat": 51.872417, "lng": 0.879657, "label": "3",  "accuracy": 12, "time": "01:08" },
+  { "lat": 51.872060, "lng": 0.878670, "label": "4",  "accuracy": 18, "time": "01:09" },
+  { "lat": 51.873729, "lng": 0.876975, "label": "5",  "accuracy": 11, "time": "01:10" },
+  { "lat": 51.874272, "lng": 0.877469, "label": "6",  "accuracy": 8,  "time": "01:12" },
+  { "lat": 51.874113, "lng": 0.877705, "label": "7",  "accuracy": 14, "time": "01:13" },
+  { "lat": 51.874444, "lng": 0.877962, "label": "8",  "accuracy": 10, "time": "01:15" },
+  { "lat": 51.874352, "lng": 0.878177, "label": "9",  "accuracy": 15, "time": "01:16" },
+  { "lat": 51.874338, "lng": 0.877662, "label": "10", "accuracy": 19, "time": "01:17" },
+  { "lat": 51.874206, "lng": 0.877662, "label": "11", "accuracy": 13, "time": "01:19" },
+  { "lat": 51.874113, "lng": 0.877383, "label": "12", "accuracy": 16, "time": "01:20" },
+  { "lat": 51.873941, "lng": 0.877233, "label": "13", "accuracy": 12, "time": "01:22" },
+  { "lat": 51.874047, "lng": 0.877769, "label": "14", "accuracy": 20, "time": "01:23" },
+  { "lat": 51.874047, "lng": 0.877597, "label": "15", "accuracy": 9,  "time": "01:24" },
+  { "lat": 51.873875, "lng": 0.877254, "label": "16", "accuracy": 11, "time": "01:26" },
+  { "lat": 51.873742, "lng": 0.877104, "label": "17", "accuracy": 17, "time": "01:27" },
+  { "lat": 51.873318, "lng": 0.877447, "label": "18", "accuracy": 14, "time": "01:29" },
+  { "lat": 51.872815, "lng": 0.877790, "label": "19", "accuracy": 12, "time": "01:30" },
+  { "lat": 51.872523, "lng": 0.878370, "label": "20", "accuracy": 10, "time": "01:31" },
+  { "lat": 51.872139, "lng": 0.879142, "label": "21", "accuracy": 8,  "time": "01:33" },
+  { "lat": 51.872854, "lng": 0.879872, "label": "22", "accuracy": 7,  "time": "01:34" },
+  { "lat": 51.873013, "lng": 0.880215, "label": "23", "accuracy": 9,  "time": "01:36" }
+]
+  },
   "ladbrokes": {
     "meta": {
       "description": "Ladbrokes short visit",

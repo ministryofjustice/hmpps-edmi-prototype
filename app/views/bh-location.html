@@ -72,8 +72,8 @@
           name: "dateFrom",
           label: { text: "Date from" },
           classes: "govuk-input--width-10",
-          value: "14/10/2025",
-          maxDate: "14/10/2025"
+          value: "27/10/2025",
+          maxDate: "27/10/2025"
         }) }}
       </div>
 
@@ -83,8 +83,8 @@
           name: "dateTo",
           label: { text: "Date to" },
           classes: "govuk-input--width-10",
-          value: "14/10/2025",
-          maxDate: "14/10/2025"
+          value: "27/10/2025",
+          maxDate: "27/10/2025"
         }) }}
       </div>
 
@@ -159,17 +159,25 @@
 
 <hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
 
-<h3 class="govuk-heading-m govuk-!-margin-bottom-0" id="filter-by-loi">Overnight activity, last 7 nights</h3>
-<p class="govuk-body">Overnight activity records GPS data and is separate from any curfew licence conditions.</p>
+<h3 class="govuk-heading-m govuk-!-margin-bottom-2" id="filter-by-loi">Overnight activity, last 7 nights</h3>
+<p class="govuk-body">Overnight activity (midnight to 6am) records GPS data and is separate from any curfew licence conditions.</p>
 
       {% call govukInsetText({ classes: "govuk-!-margin-0 guidance-panel" }) %}
 
-      <p class="govuk-body">Richard Marks spent the whole of 4 of the past 7 nights at home.</p>
+      <p class="govuk-body">Billy spent the whole of 6 of the past 7 nights at home.</p>
       <p class="govuk-body">They were <strong>away from home during the night</strong> on the following occasions:</p>
       <ul class="govuk-list govuk-list--bullet">
-        <li>From 1:05am to 1:36am on Friday 17 October 2025. <a href="#" class="plot-link govuk-link" data-trace="kings-arms-1">View on map</a></li>
-        <li>From 1am to 2am on Saturday 18 October 2025. <a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View on map</a></li>
-        <li>From 4:30am to 6:31am on Sunday 19 October 2025. <a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View on map</a></li>
+        <li>From 1:05am to 1:36am on Saturday 25 October 2025. 
+        <a href="#"
+          class="plot-link govuk-link"
+          data-trace="overnight-2025-10-25"
+          data-date="2025-10-25"
+          data-start="01:05"
+          data-end="01:36">View on map
+        </a>
+        </li>
+        <!--li>From 1am to 2am on Saturday 18 October 2025. <a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View on map</a></li>
+        <li>From 4:30am to 6:31am on Sunday 19 October 2025. <a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View on map</a></li-->
       </ul>
       {% endcall %}
 

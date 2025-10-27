@@ -66,26 +66,74 @@
     return { h, m: min };
   }
 
-  // ---------- update the map filter form to match the table row
-  function setFormDateTime(dateIso, startStr, endStr) {
-    const dmy = isoToDMY(dateIso);
-    const dateFromInput = $('#bh-date-from');
-    const dateToInput   = $('#bh-date-to');
-    if (dateFromInput) dateFromInput.value = dmy;
-    if (dateToInput)   dateToInput.value   = dmy;
+  function fmt12hFromDate(d) {
+    if (!(d instanceof Date) || isNaN(d)) return null;
+    let h = d.getHours();
+    const ap = (h >= 12) ? 'pm' : 'am';
+    let h12 = h % 12; if (h12 === 0) h12 = 12;
+    return `${h12}:${pad2(d.getMinutes())}${ap}`;
+  }
 
-    const start = parseTime12h(startStr);
-    const end   = parseTime12h(endStr);
+  // ---------- update the map filter form to match a date/time
+  function setFormDateTime(dateIso, startStr, endStr) {
+    // Find Moj date-picker inputs robustly (works if the id is on a wrapper OR the input)
+    const dfWrap = document.getElementById('bh-date-from');
+    const dtWrap = document.getElementById('bh-date-to');
+    const dateFromInput = dfWrap?.querySelector('input') || dfWrap;
+    const dateToInput   = dtWrap?.querySelector('input') || dtWrap;
+
+    // Helper: ISO -> dd/mm/yyyy
+    const toDMY = (iso) => {
+      const m = typeof iso === 'string' && iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+    };
+
+    // Parse either "1:05am" or "01:05" to {h,m}
+    const parseTimeEither = (str) => {
+      if (!str) return null;
+      const s = str.trim().toLowerCase();
+
+      // 12h with am/pm
+      let m = s.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+      if (m) {
+        let h = parseInt(m[1], 10);
+        const min = parseInt(m[2], 10);
+        const ap = m[3];
+        if (ap === 'pm' && h < 12) h += 12;
+        if (ap === 'am' && h === 12) h = 0;
+        return { h, m: min };
+      }
+
+      // 24h "HH:MM"
+      m = s.match(/^(\d{1,2}):(\d{2})$/);
+      if (m) {
+        const h = parseInt(m[1], 10);
+        const min = parseInt(m[2], 10);
+        if (h >= 0 && h < 24 && min >= 0 && min < 60) return { h, m: min };
+      }
+      return null;
+    };
+
+    // Set dates if we have one
+    if (dateIso && dateFromInput) dateFromInput.value = toDMY(dateIso);
+    if (dateIso && dateToInput)   dateToInput.value   = toDMY(dateIso);
+
+    // Times: set each independently if present
+    const tfh = document.getElementById('bh-time-from-hour');
+    const tfm = document.getElementById('bh-time-from-min');
+    const tth = document.getElementById('bh-time-to-hour');
+    const ttm = document.getElementById('bh-time-to-min');
+
+    const start = parseTimeEither(startStr);
+    const end   = parseTimeEither(endStr);
 
     if (start) {
-      const h = $('#bh-time-from-hour'), m = $('#bh-time-from-min');
-      if (h) h.value = pad2(start.h);
-      if (m) m.value = pad2(start.m);
+      if (tfh) tfh.value = String(start.h).padStart(2, '0');
+      if (tfm) tfm.value = String(start.m).padStart(2, '0');
     }
     if (end) {
-      const h = $('#bh-time-to-hour'), m = $('#bh-time-to-min');
-      if (h) h.value = pad2(end.h);
-      if (m) m.value = pad2(end.m);
+      if (tth) tth.value = String(end.h).padStart(2, '0');
+      if (ttm) ttm.value = String(end.m).padStart(2, '0');
     }
   }
 
@@ -210,25 +258,57 @@
   function onViewClick(ev) {
     const a = ev.currentTarget;
     const traceKey = a.getAttribute('data-trace');
+    // Prefer explicit attributes on the link (works even if traces aren’t preloaded)
+    const attrDate  = a.dataset.date  || '';
+    const attrStart = a.dataset.start || '';
+    const attrEnd   = a.dataset.end   || '';
+
     if (!traceKey) return;
 
     ev.preventDefault();        // avoid “#” navigation
     ev.stopPropagation();       // stop gps-map.js’s document handler from double-firing
     a.blur();                   // don’t keep focus in the table
 
-    const tr = a.closest('tr');
-    const iso = extractDateIsoFromRow(tr);
-    const [startStr, endStr] = extractTimeRangeFromRow(tr);
+// Case A: table row (if present)
+const tr = a.closest('tr');
+let dateIso  = attrDate || (tr ? extractDateIsoFromRow(tr) : '');
+let startStr = attrStart || null;
+let endStr   = attrEnd   || null;
 
-    // Safe to set inputs and scroll immediately
-    setFormDateTime(iso, startStr, endStr);
+if (tr && (!startStr || !endStr)) {
+  const [s, e] = extractTimeRangeFromRow(tr);
+  startStr = startStr || s;
+  endStr   = endStr   || e;
+}
+
+// Case B: outside a row → read from window.GPS_TRACES if still missing
+if (!startStr || !endStr || !dateIso) {
+  const lib   = (window.GPS_TRACES || {});   // object keyed by id
+  const trace = lib[traceKey];
+  if (trace) {
+    if (!dateIso) {
+      dateIso = trace.meta?.dateIso || trace.meta?.date || dateIso || '';
+    }
+    if (!startStr || !endStr) {
+      const pts = Array.isArray(trace.points) ? trace.points : [];
+      const first = pts[0], last = pts[pts.length - 1];
+      startStr = startStr || first?.time || null;
+      endStr   = endStr   || last?.time  || null;
+    }
+  }
+}
+
+
+    // Safe to set inputs and scroll immediately (handles both cases)
+    if (dateIso && startStr && endStr) {
+      setFormDateTime(dateIso, startStr, endStr);
+    }
     smoothScrollToMap();
 
     // Only the map-dependent bits wait for readiness
     runWhenMapReady(() => {
-      // Next frame ensures inputs are committed before plotting
       requestAnimationFrame(() => {
-        plotTraceDirect(traceKey, tr);
+        plotTraceDirect(traceKey, tr || null);
       });
     });
   }
@@ -244,12 +324,12 @@
       if (jumpy) e.preventDefault();
     });
 
-    // Bind “View” links
+    // Bind “View” links anywhere on the page
     const links = $$('.plot-link[data-trace]');
     links.forEach(a => a.addEventListener('click', onViewClick));
     log('Bound plot links:', links.length);
 
-    // Rebind if table re-renders
+    // Rebind if the LOI table re-renders
     document.addEventListener('bh:loi:table-updated', () => {
       const again = $$('.plot-link[data-trace]');
       again.forEach(a => {

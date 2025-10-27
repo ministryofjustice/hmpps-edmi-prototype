@@ -160,18 +160,20 @@
 <hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
 
 <h3 class="govuk-heading-m govuk-!-margin-bottom-0" id="filter-by-loi">Overnight activity, last 7 nights</h3>
+<p class="govuk-body">Overnight activity records GPS data and is separate from any curfew licence conditions.</p>
 
       {% call govukInsetText({ classes: "govuk-!-margin-0 guidance-panel" }) %}
 
-      <p class="govuk-body">Richard Marks spent 4 of the past 7 nights at home.</p>
+      <p class="govuk-body">Richard Marks spent the whole of 4 of the past 7 nights at home.</p>
       <p class="govuk-body">They were <strong>away from home during the night</strong> on the following occasions:</p>
       <ul class="govuk-list govuk-list--bullet">
-        <li>From 1:05am to 1:36am on Friday 17 October 2025</li>
-        <li>From 1am to 2am on Saturday 18 October 2025</li>
-        <li>From 4:30am to 6:31am on Sunday 19 October 2025</li>
+        <li>From 1:05am to 1:36am on Friday 17 October 2025. <a href="#" class="plot-link govuk-link" data-trace="kings-arms-1">View on map</a></li>
+        <li>From 1am to 2am on Saturday 18 October 2025. <a href="#" class="plot-link govuk-link" data-trace="kings-arms-2">View on map</a></li>
+        <li>From 4:30am to 6:31am on Sunday 19 October 2025. <a href="#" class="plot-link govuk-link" data-trace="fusilier-1">View on map</a></li>
       </ul>
       {% endcall %}
 
+      <!--
 {{ govukTable({
   attributes: {
     id: "bh-overnight-table",
@@ -249,13 +251,15 @@
     ]
   ]
 }) }}
+-->
 
+<hr class="govuk-section-break govuk-section-break--visible curfew-forecast-break">
 
 <h3 class="govuk-heading-m govuk-!-margin-bottom-0" id="filter-by-loi">Visits to specific locations of interest</h3>
 <p class="govuk-body">You can check if the person on probation has been to certain locations that may be relevant to their licence conditions.</p>
 
 {{ govukInsetText({
-  html: "<p class='govuk-body'><a href='bh-manage-locations' class='govuk-link'>Manage locations of interest</a></p>"
+  html: "<p class='govuk-body'><a href='bh-manage-locations' class='govuk-link'>Add or remove locations of interest</a></p>"
 }) }}
 
 

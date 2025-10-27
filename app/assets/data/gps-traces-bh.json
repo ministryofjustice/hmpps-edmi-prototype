@@ -2483,7 +2483,7 @@
   "areas": [
     {
       "label": "Colchester County High School for Girls, Norman Way, Colchester, CO3 3US",
-      "type": "School",
+      "type": "Schools and nurseries",
       "timeanddate": "Monday 22 September 2025, 1:33pm to 2:04pm",
       "coordinates": [
         { "lat": 51.886204, "lng": 0.879995 },
@@ -3141,7 +3141,7 @@
     "areas": [
       {
         "label": "Leisure World Colchester, Cowdray Ave, Colchester, CO1 1YH",
-        "type": "Swimming pool",
+        "type": "Swimming pools and leisure centres",
         "timeanddate": "Sunday 21 September 2025, 11:05am to 12:26pm",
         "coordinates": [
           {

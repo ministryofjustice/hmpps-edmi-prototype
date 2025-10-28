@@ -130,7 +130,7 @@
                 <label class="govuk-label govuk-date-input__label" for="bh-time-to-min">Minute</label>
                 <input class="govuk-input govuk-date-input__input govuk-input--width-2"
                        id="bh-time-to-min" name="timeToMin" type="number"
-                       inputmode="numeric" min="0" max="59" value="05">
+                       inputmode="numeric" min="0" max="59" value="30">
               </div>
             </div>
           </div>
@@ -299,10 +299,11 @@
     {% endif %}
   {% endfor %}
 
-  {# Add Custom if a custom address exists #}
-  {% if data.selectedAddress and (data.selectedAddress | length) %}
+  {# Add Custom if a custom address exists and has a name/address #}
+  {% if data.selectedAddress and (data.selectedAddress | trim | length) > 0 %}
     <option value="custom">Custom</option>
   {% endif %}
+
 </select>
 
 
@@ -465,6 +466,12 @@
 
 {# 3) Filter rows by the user’s selected LOI types #}
 {% set allowedTypes = data.loiTypes or [] %}
+
+{# ensure custom locations always display if a user-added address exists #}
+{% if data.selectedAddress and (data.selectedAddress | length) %}
+  {% set allowedTypes = allowedTypes + ["custom"] %}
+{% endif %}
+
 {% set visibleRows = [] %}
 
 {% for row in loiRows %}

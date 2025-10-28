@@ -28,7 +28,7 @@ const CFG = Object.assign({
 window.CFG = CFG;
 
 // add near your CFG block
-const MINI_POINTS = (CFG.MINI_TRACE_POINTS || 5);
+const MINI_POINTS = (CFG.MINI_TRACE_POINTS || 30);
 
 // --- first-load mini trace (latest N points) ---
 whenMapReady(async () => {
@@ -718,7 +718,7 @@ whenMapReady(async () => {
     window.CFG.DEFAULT_SCENARIO_KEY = latestKey;
 
     // Build a mini-trace: only points from the last N minutes of the latest day
-    const MINUTES = 5; // ← change to 4/5 as you like
+    const MINUTES = 60; // ← change to 4/5 as you like
     const trace = lib[latestKey] || { points: [] };
     const pts = Array.isArray(trace.points) ? trace.points.slice() : [];
 

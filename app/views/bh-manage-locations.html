@@ -54,11 +54,17 @@
   <div class="govuk-grid-column-full">
 
     <h2 class="govuk-heading-m govuk-!-margin-bottom-3">Manage locations of interest</h2>
+    <p class="govuk-body govuk-!-margin-bottom-5">
+      You can choose which locations appear on the person on probation’s location activity tab by:</p>
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-bottom-6">
+      <li>adding custom locations</li>
+      <li>adding locations of interest from a pre-defined list</li>
+    </ul>
 
       {# --- Section 1: Custom LOIs --- #}
-      <h3 class="govuk-heading-s govuk-!-margin-bottom-2">Add new locations of interest</h3>
+      <h3 class="govuk-heading-s govuk-!-margin-bottom-2">Add a custom location</h3>
       <p class="govuk-body govuk-!-margin-top-2">
-        Search by postcode or enter the address manually.
+        Search by postcode or enter an address manually.
       </p>
 
       {{ govukInsetText({
@@ -86,7 +92,7 @@
 
 
       <p class="govuk-body" style="margin-bottom: 60px;">
-        <a href="add-location1" class="govuk-link">Add new location of interest</a>
+        <a href="add-location1" class="govuk-link">Add new custom location</a>
       </p>
 
     {# ONE FORM WRAPS EVERYTHING #}
@@ -108,12 +114,12 @@
   name: "loiTypes[]",
   fieldset: {
     legend: {
-      text: "Location display options",
+      text: "Add locations of interest from a pre-defined list",
       isPageHeading: true,
-      classes: "govuk-fieldset__legend--m"
+      classes: "govuk-fieldset__legend--s"
     }
   },
-  hint: { text: "Show the following locations of interest on the location activity tab" },
+  hint: { text: "Select the location categories most relevant to the person on probation’s licence conditions from the following options:" },
   items: [
     { value: "betting shops",     text: "Betting shops",      checked: ("betting shops" in selectedTypes) },
     { value: "places of worship", text: "Places of worship",  checked: ("places of worship" in selectedTypes) },

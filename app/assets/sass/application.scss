@@ -137,6 +137,59 @@ tr.is-active-row > td { background-color: #FFF8CC; }
 }
 
 
+/* Penny search panel layout (4 cols: Date | Time | Period | Actions) */
+/* Grid: 4 cols (date | time | period | button), then a full-width row for the clear link */
+.bh-filters-grid{
+  display:grid;
+  grid-template-columns:minmax(14rem,1fr) minmax(10rem,0.5fr) minmax(14rem,1fr) max-content;
+  grid-template-areas:
+    "date time period actions"
+    "clear clear clear clear";
+  column-gap:32px;
+  row-gap:12px;
+
+  /* <- THIS forces all form controls to line up at the bottom */
+  align-items:end;
+}
+
+/* place items */
+.bh-date-from  { grid-area:date; }
+.bh-time-from  { grid-area:time; }
+.bh-period     { grid-area:period; }
+.bh-actions    { grid-area:actions; align-self:end; } /* extra safety */
+.bh-clear-link { grid-area:clear; margin:0; }
+
+/* tidy widths */
+.bh-date-from .govuk-input{ max-width:24rem; }
+.bh-period .govuk-select{ max-width:20rem; }
+#bh-apply-filters{ margin:0; white-space:nowrap; }
+
+/* responsive */
+@media (max-width: 980px){
+  .bh-filters-grid{
+    grid-template-columns:1fr 1fr;
+    grid-template-areas:
+      "date date"
+      "time period"
+      "actions actions"
+      "clear clear";
+    align-items:end;
+  }
+}
+@media (max-width:600px){
+  .bh-filters-grid{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "date"
+      "time"
+      "period"
+      "actions"
+      "clear";
+  }
+}
+
+/* optional: debug – outlines each grid child 
+.bh-filters-grid > * { outline: 2px dashed rgba(0,0,0,.2); } */
 
 
 .no-wrap {

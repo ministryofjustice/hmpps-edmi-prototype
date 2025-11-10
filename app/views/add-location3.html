@@ -16,7 +16,7 @@
 {% from "govuk/components/input/macro.njk" import govukInput %}
 
 <div class="govuk-width-container">
-  <h1 class="govuk-heading-l">Confirm address</h1>
+  <h1 class="govuk-heading-l">Confirm location</h1>
   <p class="govuk-body">
     6 addresses found for <b>{{ data.postcode or 'wr11nl' }}</b> and <b>{{ data.searchString or '1' }}</b>. 
     <a href="add-location1" class="govuk-link">Search again</a>
@@ -31,7 +31,7 @@
       id: "loiName",
       name: "loiName",
       label: {
-        text: "Name this location of interest",
+        text: "Name your custom location",
         classes: "govuk-label-p"
       },
       value: data.loiName

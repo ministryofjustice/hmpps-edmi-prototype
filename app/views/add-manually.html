@@ -8,7 +8,7 @@
   { text: "Search", href: "#", active: false }
 ] %}
 
-{% set pageName="Add location of interest manually" %}
+{% set pageName="Add location manually" %}
 
 {% block content %}
 
@@ -18,7 +18,7 @@
 
   {% call govukFieldset({
   legend: {
-    text: "Add location of interest manually",
+    text: "Add location manually",
     classes: "govuk-fieldset__legend--l",
     isPageHeading: true
   }
@@ -28,7 +28,7 @@
       id: "loiName",
       name: "loiName",
       label: {
-        text: "Name this location of interest",
+        text: "Name this location",
         classes: "govuk-label"
       },
       value: data.loiName
@@ -84,7 +84,7 @@
 <div class="govuk-button-group">
   {{ govukButton({ text: "Save this address", type: "submit" }) }}
   
-  <a class="govuk-link" href="#">Cancel and go back</a>
+  <a href="bh-manage-locations" class="govuk-link">Cancel and go back</a>
 </div>
 
 </form>

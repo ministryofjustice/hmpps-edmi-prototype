@@ -55,7 +55,7 @@
 
     <h2 class="govuk-heading-m govuk-!-margin-bottom-3">Manage locations of interest</h2>
     <p class="govuk-body govuk-!-margin-bottom-5">
-      You can choose which locations appear on the person on probation’s location activity tab by:</p>
+      You can choose which locations appear on Billy's location activity tab by:</p>
     <ul class="govuk-list govuk-list--bullet govuk-!-margin-bottom-6">
       <li>adding custom locations</li>
       <li>adding locations of interest from a pre-defined list</li>
@@ -68,7 +68,7 @@
       </p>
 
       {{ govukInsetText({
-        html: "<b>Please note:</b> it can take up to 24 hours for a new location to appear on the map"
+        html: "It can take up to 24 hours for a new location to appear on the map"
       }) }}
 
       {% if data.selectedAddress %}
@@ -85,7 +85,7 @@
       {% else %}
         <div id="loi-inset">
           {{ govukInsetText({
-            html: "No personal locations have been added."
+            html: "No custom locations have been added."
           }) }}
         </div>
       {% endif %}
@@ -119,7 +119,7 @@
       classes: "govuk-fieldset__legend--s"
     }
   },
-  hint: { text: "Select the location categories most relevant to the person on probation’s licence conditions from the following options:" },
+  hint: { text: "Select the location categories most relevant to Billy's licence conditions from the following options:" },
   items: [
     { value: "betting shops",     text: "Betting shops",      checked: ("betting shops" in selectedTypes) },
     { value: "places of worship", text: "Places of worship",  checked: ("places of worship" in selectedTypes) },
@@ -143,7 +143,7 @@
           }
         },
         hint: {
-          text: "Standard licence conditions require the person on probation to remain in the country. Only deselect this option if it makes understanding your data easier."
+          text: "Standard licence conditions require Billy to remain in the country. Only deselect this option if it makes understanding your data easier."
         },
         items: [
           {

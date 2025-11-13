@@ -61,7 +61,6 @@
   <form id="bh-map-filters" class="bh-filters-grid" novalidate>
     {# ---- Col 1: Start date + clear link ---- #}
     <div class="cell date">
-      {% from "moj/components/date-picker/macro.njk" import mojDatePicker %}
       {{ mojDatePicker({
         id: "bh-date-from",
         name: "dateFrom",
@@ -102,32 +101,35 @@
     {# ---- Col 3: Search period ---- #}
     <div class="cell period">
       <div class="govuk-form-group govuk-!-margin-top-0">
-        <label class="govuk-label" for="search-period">Search period</label>
+        <label class="govuk-label" for="bh-period">Search period</label>
         <span class="govuk-hint">From 1 to 24 hours</span>
-        <select class="govuk-select" id="search-period" name="searchPeriod">
+        <select class="govuk-select" id="bh-period" name="periodHours">
           <option value="1">1 hour</option>
           <option value="2">2 hours</option>
           <option value="4">4 hours</option>
-          <option value="6" selected>6 hours</option>
+          <option value="6">6 hours</option>
           <option value="8">8 hours</option>
           <option value="24">24 hours</option>
         </select>
       </div>
     </div>
 
+
+
     {# ---- Col 4: Action ---- #}
     <div class="cell actions">
-      <button class="govuk-button" data-module="govuk-button" id="bh-apply-filters" type="submit">
-        Update map
-      </button>
-    </div>
+  <button class="govuk-button" data-module="govuk-button" id="bh-apply-filters" type="submit">
+    Update map
+  </button>
+  <a class="govuk-link govuk-!-margin-left-3" href="#" id="bh-step-forward">+ 6 hours</a>
+
+</div>
+
     <p class="govuk-!-margin-top-1 govuk-!-margin-bottom-0">
       <a href="/penny-location?clear=1" id="bh-clear-filters" class="govuk-link">Clear search filters</a>
     </p>  
   </form>
 </div>
-
-
 
 <div class="govuk-!-margin-bottom-6">
   <div id="map-status" class="govuk-visually-hidden" aria-live="polite"></div>
@@ -153,7 +155,7 @@
         </li>
       </ul>
       <p class="govuk-body">Overnight activity shows any times the person on probation left home between midnight and 6am in the last 7 days.</p>
-      <p class="govuk-body"></p>It does not show activity in relation to any curfew licence conditions.</p>
+      <p class="govuk-body">It does not show activity in relation to any curfew licence conditions.</p>
       {% endcall %}
 
       <!--
@@ -491,8 +493,6 @@
 
 <!-- Duration calculator -->
 <script src="/public/javascripts/duration-helper.js"></script>
-
-<script src="/public/javascripts/pj-period-filters.js"></script>
 <script src="/public/javascripts/bh-filters-align.js"></script>
 <script src="/public/javascripts/bh-map-filters.js"></script>
 
@@ -504,6 +504,7 @@
 <script src="/public/javascripts/gps-map.js"></script>
 <script src="/public/javascripts/bh-update-map.js"></script>
 <script src="/public/javascripts/bh-loi-to-map-sync.js"></script>
+<script src="/public/javascripts/pj-period-step.js"></script>
 
 <!-- Table filtering -->
 <script src="/public/javascripts/loi-filters.js"></script>

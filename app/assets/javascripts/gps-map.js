@@ -20,12 +20,16 @@
 // ---------- per-page config with sensible defaults ----------
 const CFG = Object.assign({
   DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
-  SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-oct22.json',
-  DEFAULT_SCENARIO_KEY: 'bh_20251022'   // safe fallback string
+  SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-nov01.json',
+  DEFAULT_SCENARIO_KEY: 'bh_20251101'   // safe fallback string
 }, (window.GPS_CONFIG || {}));
 
-// Make available to other files
+// DEBUG: surface the config we actually ended up with
 window.CFG = CFG;
+console.log('[gps-map] CFG', CFG);
+
+// Keep the legacy helper in sync
+window.__BH_SCENARIOS_URL = CFG.SCENARIOS_URL;
 
 // add near your CFG block
 const MINI_POINTS = (CFG.MINI_TRACE_POINTS || 30);

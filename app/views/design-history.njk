@@ -12,6 +12,22 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">13 November 2025</dt>
+  <dd class="govuk-summary-list__value">
+    GPS trace generation, search modes and data realism improvements:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Reworked the GPS test data generator to support multiple days of anchor-based routes for both Billy and Penny.</li>
+      <li>Introduced two co-existing search patterns: Billy’s “From / To” time window and Penny’s “From + period” mode with step-forward controls.</li>
+      <li>Fixed the “no points plotted” issue by regenerating daily traces across the full 24-hour window instead of clustering points near midnight.</li>
+      <li>Improved user experience in Penny’s search panel with a four-column layout and aligned inputs, including correct placement of clear and step-forward actions.</li>
+      <li>Upgraded the spline generation script to create more realistic movement: added positional jitter, varied accuracy, and stop-clusters to mimic real GPS drift and linger behaviour.</li>
+      <li>Confirmed map stability during updates and ensured LOI “View on map” links continue to scroll correctly to the map area.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">4 November 2025</dt>
   <dd class="govuk-summary-list__value">
     <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">

@@ -12,6 +12,23 @@
   <dl class="govuk-summary-list govuk-!-margin-top-6">
 
 <div class="govuk-summary-list__row">
+  <dt class="govuk-summary-list__key">14 November 2025</dt>
+  <dd class="govuk-summary-list__value">
+    GPS trace realism and map behaviour improvements:
+    <ul class="govuk-list govuk-list--bullet govuk-!-margin-top-1">
+      <li>Replaced linear daily traces with a new “bearing-aware” route generator to create more realistic movement between anchor points.</li>
+      <li>Added curved path shaping so routes bend naturally instead of forming straight-line interpolations.</li>
+      <li>Introduced corner slowdown and junction dwell behaviour to mimic hesitations, turns and small stops.</li>
+      <li>Added controlled GPS noise, blips, and short “drift shadows” so signal behaviour feels closer to real monitoring data.</li>
+      <li>Implemented corner-cutting wobble and variable movement speeds to soften the overall path and reduce mechanical movement patterns.</li>
+      <li>Updated initial page load so the map uses the values from the search form, replacing the previous “mini trace” preview.</li>
+      <li>Ensured Billy and Penny pages both use the same filter + plot behaviour on load and on manual Update.</li>
+    </ul>
+  </dd>
+</div>
+
+
+<div class="govuk-summary-list__row">
   <dt class="govuk-summary-list__key">13 November 2025</dt>
   <dd class="govuk-summary-list__value">
     GPS trace generation, search modes and data realism improvements:

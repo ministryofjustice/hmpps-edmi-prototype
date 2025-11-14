@@ -1,24 +1,7 @@
 #!/usr/bin/env node
-// build_spline_scenarios.js
-//
-// Usage:
-//   node scripts/build_spline_scenarios.js \
-//     app/assets/data/gps-traces-bh-demo-nov01.json \
-//     app/assets/data/anchors.json \
-//     app/assets/data/gps-traces-bh-demo-nov01.json
-//
-// It will:
-//   - Read the existing scenarios JSON
-//   - Read anchors.json (your 6 anchor points per day)
-//   - For each bh_YYYYMMDD in anchors, generate ~300–350 points
-//     spread across the full 24h, interpolating between anchors
-//   - Add strong curvature between anchors, GPS-style drift and
-//     larger stop clusters so it looks like messy real-world data
-//   - Preserve any existing `areas` polygons for that day
-//   - Write back to outPath
+// build_spline_scenarios.js — Chaos Mode + Road-ish bearing intelligence
 
 const fs = require('fs');
-const path = require('path');
 
 if (process.argv.length < 5) {
   console.error(
@@ -38,224 +21,193 @@ function readJson(p) {
 const base    = readJson(inPath);
 const anchors = readJson(anchorsPath);
 
-function lerp(a, b, t) {
-  return a + (b - a) * t;
+// --- tiny helpers ---------------------------------------------------
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function bearing(a, b) {
+  const lat1 = a.lat * Math.PI/180, lat2 = b.lat * Math.PI/180;
+  const dLng = (b.lng - a.lng) * Math.PI/180;
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x = Math.cos(lat1)*Math.cos(lat2)*Math.cos(dLng) -
+            Math.sin(lat1)*Math.sin(lat2);
+  return (Math.atan2(y, x) * 180/Math.PI + 360) % 360;
 }
 
-// Simple piecewise linear interpolation along an anchor list
-function makeAnchorSampler(anchorList) {
-  const n = anchorList.length;
-  return function sample(u) {
-    if (n === 1) return anchorList[0];
-    const s = u * (n - 1);
-    const i = Math.floor(s);
-    const v = s - i;
-    const a = anchorList[i];
-    const b = anchorList[Math.min(i + 1, n - 1)];
-    return {
-      lat: lerp(a.lat, b.lat, v),
-      lng: lerp(a.lng, b.lng, v)
-    };
-  };
-}
-
-// Convert a "jitter in metres" into small lat/lng offsets (approximate).
 function jitterLatLng(lat, lng, meters) {
-  if (!meters || meters <= 0) return { lat, lng };
-
-  const metersPerDegLat = 111000; // ~111km per degree latitude
-  const metersPerDegLng = 111000 * Math.cos(lat * Math.PI / 180);
-
-  const maxLatOffsetDeg = meters / metersPerDegLat;
-  const maxLngOffsetDeg = meters / metersPerDegLng;
-
-  const jLat = (Math.random() - 0.5) * 2 * maxLatOffsetDeg;
-  const jLng = (Math.random() - 0.5) * 2 * maxLngOffsetDeg;
-
+  const mLat = meters / 111000;
+  const mLng = meters / (111000 * Math.cos(lat*Math.PI/180));
   return {
-    lat: lat + jLat,
-    lng: lng + jLng
+    lat: lat + (Math.random()-0.5)*2*mLat,
+    lng: lng + (Math.random()-0.5)*2*mLng
   };
 }
 
-// Build a "curved" anchor list by inserting bent midpoints between anchors
-// so the route bows and kinks instead of being perfectly straight.
-function buildCurvedAnchors(anchorList) {
-  if (!Array.isArray(anchorList) || anchorList.length < 2) {
-    return anchorList || [];
-  }
+function stepInBearing(lat, lng, bearingDeg, meters) {
+  const br = bearingDeg * Math.PI/180;
+  const dLat = (meters/111000) * Math.cos(br);
+  const dLng = (meters/111000) * Math.sin(br) / Math.cos(lat*Math.PI/180);
+  return { lat: lat + dLat, lng: lng + dLng };
+}
+
+// --- Build a strongly curved, bearing-aware anchor list -------------
+
+function buildCurvedAnchors(anchors) {
+  if (!anchors || anchors.length < 2) return anchors;
 
   const out = [];
-  for (let i = 0; i < anchorList.length - 1; i++) {
-    const a = anchorList[i];
-    const b = anchorList[i + 1];
+  for (let i = 0; i < anchors.length-1; i++) {
+    const a = anchors[i];
+    const b = anchors[i+1];
 
-    if (i === 0) {
-      out.push(a);
-    }
+    if (i === 0) out.push(a);
 
-    // Midpoint between a and b
-    const midLat = (a.lat + b.lat) / 2;
-    const midLng = (a.lng + b.lng) / 2;
+    const br = bearing(a, b);
 
-    // Strong sideways bend: 20–60m jitter at the midpoint
-    const bendMeters = 20 + Math.random() * 40;
-    const bentMid = jitterLatLng(midLat, midLng, bendMeters);
+    const angleOffset = 30 + Math.random()*40;    // 30–70 degrees
+    const direction = (Math.random() < 0.5) ? -1 : 1;
 
-    out.push({ lat: bentMid.lat, lng: bentMid.lng });
+    const bendMeters = 20 + Math.random()*40;     // 20–60 m offset
+
+    const mid = stepInBearing(
+      (a.lat+b.lat)/2,
+      (a.lng+b.lng)/2,
+      br + direction*angleOffset,
+      bendMeters
+    );
+
+    out.push(mid);
     out.push(b);
   }
   return out;
 }
 
-// Build one day’s noisy, curved, clustered trace
+// Create sampler for the curved anchors
+function makeAnchorSampler(arr) {
+  const n = arr.length;
+  return u => {
+    const s = u*(n-1);
+    const i = Math.floor(s);
+    const v = s - i;
+    const a = arr[i], b = arr[Math.min(i+1,n-1)];
+    return { lat: lerp(a.lat,b.lat,v), lng: lerp(a.lng,b.lng,v) };
+  };
+}
+
+// --- Main day builder ------------------------------------------------
+
 function buildDay(dayKey, anchorList, existingDay) {
-  // Base backbone points; clusters get added on top.
   const BASE_POINTS = 230;
+  const ymd = dayKey.replace(/^bh_/, '');
+  const year = +ymd.slice(0,4), month = +ymd.slice(4,6), day = +ymd.slice(6,8);
+  const pad2 = n => String(n).padStart(2,'0');
 
-  // First, bend the anchor list so segments arc instead of being straight.
-  const curvedAnchors = buildCurvedAnchors(anchorList);
-  const sample = makeAnchorSampler(curvedAnchors);
+  const curved = buildCurvedAnchors(anchorList);
+  const sample = makeAnchorSampler(curved);
+  const minutesInDay = 1440;
 
-  // dayKey like "bh_20251103"
-  const ymd = dayKey.replace(/^bh_/, ''); // "20251103"
-  const year  = Number(ymd.slice(0, 4));
-  const month = Number(ymd.slice(4, 6));
-  const day   = Number(ymd.slice(6, 8));
-
-  const pad2 = (n) => String(n).padStart(2, '0');
-
-  const minutesInDay = 24 * 60; // 1440
-  const backbonePoints = [];
-  let labelCounter = 0;
-
-  // --- Variable speed: build a non-linear time mapping ---
-  // Random weights along the route, then normalise to [0,1].
+  // --- Variable speed profile with corner-slowdown ------------------
   const weights = [];
   for (let i = 0; i < BASE_POINTS; i++) {
-    // 0.4–2.0 weight range: some slow, some fast
-    weights.push(0.4 + Math.random() * 1.6);
+    let w = 0.6 + Math.random()*1.4;
+    const u = i/(BASE_POINTS-1);
+
+    // Slow near anchor transitions by boosting weight
+    const segPos = u*(curved.length-1);
+    const segIndex = Math.floor(segPos);
+    const local = segPos - segIndex;
+    if (local < 0.12 || local > 0.88) w *= 1.8; // slow before/after corners
+
+    weights.push(w);
   }
-  const totalW = weights.reduce((a, b) => a + b, 0);
-  const timeUs = [];
-  let cum = 0;
-  for (let i = 0; i < BASE_POINTS; i++) {
-    cum += weights[i];
-    timeUs.push(cum / totalW); // monotonically increasing 0..1
+  const totalW = weights.reduce((a,b) => a+b, 0);
+  let acc = 0;
+  const timeUs = weights.map(w => (acc+=w)/totalW);
+
+  // --- Build backbone with jitter + blips + noise shadows ----------
+  const points = [];
+  let labelCounter = 1;
+
+  const BLIP_P = 0.08;
+  const SHADOW_COUNT = 2 + Math.floor(Math.random()*2); // 2–3 shadows
+  const shadowStarts = [];
+
+  for (let s=0; s<SHADOW_COUNT; s++) {
+    shadowStarts.push(Math.floor(Math.random()*(BASE_POINTS-10)));
   }
 
-  const BACKBONE_JITTER_METERS = 18; // general wobble around the route
-  const BLIP_PROBABILITY       = 0.08; // ~8% of points with big GPS blips
-  const BLIP_MIN_METERS        = 25;
-  const BLIP_EXTRA_RANGE       = 15;   // so 25–40m blips
-
   for (let i = 0; i < BASE_POINTS; i++) {
-    const spatialU = i / (BASE_POINTS - 1); // 0..1 along geometry
-    const timeU    = timeUs[i];             // 0..1 along time
+    const uGeom = i/(BASE_POINTS-1);
+    const uTime = timeUs[i];
 
-    const sampled = sample(spatialU);
-    let lat = sampled.lat;
-    let lng = sampled.lng;
+    const base = sample(uGeom);
+    let { lat, lng } = base;
 
-    // Apply strong jitter around the curved path
-    const jittered = jitterLatLng(lat, lng, BACKBONE_JITTER_METERS);
-    lat = jittered.lat;
-    lng = jittered.lng;
+    lat = jitterLatLng(lat, lng, 18).lat;
+    lng = jitterLatLng(base.lat, base.lng, 18).lng;
 
-    // Occasional bigger GPS blips (20–40m jumps)
-    if (Math.random() < BLIP_PROBABILITY) {
-      const blipMeters = BLIP_MIN_METERS + Math.random() * BLIP_EXTRA_RANGE;
-      const blipped = jitterLatLng(lat, lng, blipMeters);
-      lat = blipped.lat;
-      lng = blipped.lng;
+    if (Math.random() < BLIP_P) {
+      const m = 25 + Math.random()*15;
+      const j = jitterLatLng(lat,lng,m);
+      lat = j.lat; lng = j.lng;
     }
 
-    // Time based on the warped timeU (variable speed)
-    const mins = Math.round(timeU * (minutesInDay - 1)); // 0..1439
-    const hh = pad2(Math.floor(mins / 60));
-    const mm = pad2(mins % 60);
+    let inShadow = shadowStarts.some(s => i>=s && i<s+6);
+    if (inShadow) {
+      const m = 25 + Math.random()*25;
+      const br = Math.random()*360;
+      const step = stepInBearing(lat,lng,br,m);
+      lat = step.lat; lng = step.lng;
+    }
 
+    const mins = Math.round(uTime * (minutesInDay-1));
+    const hh = pad2(Math.floor(mins/60));
+    const mm = pad2(mins % 60);
     const time = `${year}-${pad2(month)}-${pad2(day)}T${hh}:${mm}`;
 
-    // Mild jittered accuracy, roughly “GPS-ish”
-    const baseAcc = 10;
-    const accJitter  = Math.random() * 10;
-    const accuracy = Math.round(baseAcc + accJitter);
-
-    backbonePoints.push({
-      lat,
-      lng,
-      time,
-      accuracy,
+    points.push({
+      lat, lng, time,
+      accuracy: Math.round(10 + Math.random()*10),
       label: labelCounter++
     });
-  }
 
-  // --- Add messy stop clusters on top of the backbone ---
-  const points = [];
-
-  // More frequent + bigger clusters
-  const STOP_PROBABILITY = 0.22; // ~22% chance after a point
-  const MAX_CLUSTER_JITTER_METERS = 10;
-
-  for (let i = 0; i < backbonePoints.length; i++) {
-    const p = backbonePoints[i];
-    points.push(p);
-
-    // Avoid stops right at the very start/end of the day
-    if (i < 10 || i > backbonePoints.length - 10) continue;
-
-    if (Math.random() < STOP_PROBABILITY) {
-      // Bigger clusters: 4–8 extra points
-      const clusterSize = 4 + Math.floor(Math.random() * 5); // 4,5,6,7,8
-
-      for (let k = 0; k < clusterSize; k++) {
-        const jittered = jitterLatLng(
-          p.lat,
-          p.lng,
-          MAX_CLUSTER_JITTER_METERS
-        );
-
-        points.push({
-          lat: jittered.lat,
-          lng: jittered.lng,
-          time: p.time,      // same minute = "stopped / lingered here"
-          accuracy: p.accuracy,
-          label: labelCounter++
-        });
+    // --- Junction dwell ---
+    const segPos = uGeom*(curved.length-1);
+    const local = segPos - Math.floor(segPos);
+    if (local < 0.08 || local > 0.92) {
+      if (Math.random() < 0.35 && i>2 && i<BASE_POINTS-3) {
+        const dwellCount = 2 + Math.floor(Math.random()*3);
+        for (let d=0; d<dwellCount; d++) {
+          const j = jitterLatLng(lat,lng,6+Math.random()*6);
+          points.push({
+            lat: j.lat,
+            lng: j.lng,
+            time,
+            accuracy: Math.round(10 + Math.random()*10),
+            label: labelCounter++
+          });
+        }
       }
     }
   }
 
-  // Preserve any existing areas (polygons) for that day
-  let areas = [];
-  if (existingDay && Array.isArray(existingDay.areas)) {
-    areas = existingDay.areas;
-  }
-
+  const areas = Array.isArray(existingDay?.areas) ? existingDay.areas : [];
   return { points, areas };
 }
 
-// ---- main transform ----
+// --- Main loop ------------------------------------------------------
+
 for (const dayKey of Object.keys(anchors)) {
-  const anchorList = anchors[dayKey];
-  if (!Array.isArray(anchorList) || !anchorList.length) {
-    console.warn('[build_spline_scenarios] Skipping', dayKey, '- no anchors');
+  const list = anchors[dayKey];
+  if (!list?.length) {
+    console.warn('Skipping', dayKey, '- no anchors');
     continue;
   }
-
-  const existing = base[dayKey] || {};
-  const dayObj   = buildDay(dayKey, anchorList, existing);
-  base[dayKey]   = dayObj;
-
-  console.log(
-    '[build_spline_scenarios] built day',
-    dayKey,
-    'points:', dayObj.points.length,
-    'areas:', (dayObj.areas || []).length
-  );
+  const ex = base[dayKey] || {};
+  const dayObj = buildDay(dayKey, list, ex);
+  base[dayKey] = dayObj;
+  console.log('[build_spline_scenarios]', dayKey, dayObj.points.length, 'pts');
 }
 
-// Write out
 fs.writeFileSync(outPath, JSON.stringify(base, null, 2));
 console.log('[build_spline_scenarios] wrote', outPath);

@@ -17,60 +17,19 @@
     setTimeout(() => whenMapReady(cb, tries - 1), 50);
   }
 
-// ---------- per-page config with sensible defaults ----------
-const CFG = Object.assign({
-  DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
-  SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-nov01.json',
-  DEFAULT_SCENARIO_KEY: 'bh_20251101'   // safe fallback string
-}, (window.GPS_CONFIG || {}));
+  // ---------- per-page config with sensible defaults ----------
+  const CFG = Object.assign({
+    DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
+    SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-nov01.json',
+    DEFAULT_SCENARIO_KEY: 'bh_20251101'   // safe fallback string
+  }, (window.GPS_CONFIG || {}));
 
-// DEBUG: surface the config we actually ended up with
-window.CFG = CFG;
-console.log('[gps-map] CFG', CFG);
+  // DEBUG: surface the config we actually ended up with
+  window.CFG = CFG;
+  console.log('[gps-map] CFG', CFG);
 
-// Keep the legacy helper in sync
-window.__BH_SCENARIOS_URL = CFG.SCENARIOS_URL;
-
-// add near your CFG block
-const MINI_POINTS = (CFG.MINI_TRACE_POINTS || 30);
-
-// --- first-load mini trace (latest N points) ---
-whenMapReady(async () => {
-  if (window.__bh_initial_plotted) return;
-  window.__bh_initial_plotted = true;
-
-  try {
-    const data = await (await fetch(CFG.SCENARIOS_URL, { cache: 'no-store' })).json();
-    const base = data[CFG.DEFAULT_SCENARIO_KEY];
-    if (!base || !Array.isArray(base.points) || base.points.length === 0) {
-      console.warn('[gps-map] scenario missing or empty; plotting fallback default');
-      await plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
-        scrollToMap: false,
-        highlightRowEl: null,
-        dataUrl: CFG.SCENARIOS_URL
-      });
-      return;
-    }
-
-    // Take the last N points by index (not by time window)
-    const pts = base.points.slice(-MINI_POINTS);
-    const mini = { ...base, points: pts };
-
-    await window.plotTraceObject(mini, {
-      scrollToMap: false,
-      highlightRowEl: null
-    });
-  } catch (e) {
-    console.warn('[gps-map] mini-trace preload failed; plotting fallback:', e);
-    await plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
-      scrollToMap: false,
-      highlightRowEl: null,
-      dataUrl: CFG.SCENARIOS_URL
-    });
-  }
-});
-
-
+  // Keep the legacy helper in sync
+  window.__BH_SCENARIOS_URL = CFG.SCENARIOS_URL;
 
   // Convert HTML like "Wednesday 3 September<br/>2025" to "Wednesday 3 September 2025"
   function htmlToPlain(html) {
@@ -137,205 +96,200 @@ whenMapReady(async () => {
 
   // --- Densify helpers (paste once) -------------------------------------------
 
-// Ray-casting: point inside polygon?
-function pointInPolygon(point, vs) {
-  const x = point[1], y = point[0];
-  let inside = false;
-  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-    const xi = vs[i][1], yi = vs[i][0];
-    const xj = vs[j][1], yj = vs[j][0];
-    const intersect = ((yi > y) !== (yj > y)) &&
-      (x < ((xj - xi) * (y - yi)) / (yj - yi + 0.0000001) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
-
-// Random point inside polygon by rejection sampling within its bbox
-function randomPointInPolygon(polyLatLngs) {
-  let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
-  polyLatLngs.forEach(p => {
-    if (p.lat < minLat) minLat = p.lat;
-    if (p.lat > maxLat) maxLat = p.lat;
-    if (p.lng < minLng) minLng = p.lng;
-    if (p.lng > maxLng) maxLng = p.lng;
-  });
-  // try up to N times (polygon is small; this is fine)
-  for (let i = 0; i < 2000; i++) {
-    const lat = minLat + Math.random() * (maxLat - minLat);
-    const lng = minLng + Math.random() * (maxLng - minLng);
-    if (pointInPolygon([lat, lng], polyLatLngs.map(p => [p.lat, p.lng]))) {
-      return { lat, lng };
+  // Ray-casting: point inside polygon?
+  function pointInPolygon(point, vs) {
+    const x = point[1], y = point[0];
+    let inside = false;
+    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+      const xi = vs[i][1], yi = vs[i][0];
+      const xj = vs[j][1], yj = vs[j][0];
+      const intersect = ((yi > y) !== (yj > y)) &&
+        (x < ((xj - xi) * (y - yi)) / (yj - yi + 0.0000001) + xi);
+      if (intersect) inside = !inside;
     }
-  }
-  // fallback to centroid if something odd happens
-  const c = polyLatLngs.reduce((a, p) => ({ lat: a.lat + p.lat, lng: a.lng + p.lng }), { lat: 0, lng: 0 });
-  return { lat: c.lat / polyLatLngs.length, lng: c.lng / polyLatLngs.length };
-}
-
-// Make HH:MM minutes between a start and end time (strings 'HH:MM')
-function minutesBetween(startHHMM, endHHMM) {
-  const [sh, sm] = startHHMM.split(':').map(Number);
-  const [eh, em] = endHHMM.split(':').map(Number);
-  return (eh * 60 + em) - (sh * 60 + sm);
-}
-function addMinutes(hhmm, m) {
-  const [h, mm] = hhmm.split(':').map(Number);
-  const t = h * 60 + mm + m;
-  const H = Math.floor((t % 1440) / 60);
-  const M = t % 60;
-  return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;
-}
-
-// --- helpers for random-walk densify ---
-function metersToDegrees(lat, meters) {
-  const dLat = meters / 111320; // ~111.32km per degree latitude
-  const dLng = meters / (111320 * Math.cos(lat * Math.PI / 180) || 1);
-  return { dLat, dLng };
-}
-
-function polygonCentroid(poly) {
-  // basic polygon centroid (lat/lng objects)
-  let x = 0, y = 0, f, area = 0;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    f = (poly[i].lng * poly[j].lat) - (poly[j].lng * poly[i].lat);
-    x += (poly[i].lng + poly[j].lng) * f;
-    y += (poly[i].lat + poly[j].lat) * f;
-    area += f;
-  }
-  area *= 0.5;
-  if (!area) return { lat: poly[0].lat, lng: poly[0].lng };
-  return { lat: y / (6 * area), lng: x / (6 * area) };
-}
-
-
-// Densify a trace: generate N extra points inside polygon, with label/accuracy/time,
-// and return the LOI time window so the caller can splice into the right place.
-function densifyTrace(original, areaPoly, opts) {
-  const extra = opts?.count || 0;
-  if (!extra || !Array.isArray(areaPoly) || !areaPoly.length) {
-    return { points: [], startHHMM: null, endHHMM: null };
+    return inside;
   }
 
-  // Read LOI window from areas[0].timeanddate (e.g. "... 11:05am to 12:26pm")
-  // Fallback to first/last original point times.
-  const timeStr = original?.areas?.[0]?.timeanddate || '';
-  const m = timeStr.match(/(\d{1,2}:\d{2})\s*(am|pm)\s*to\s*(\d{1,2}:\d{2})\s*(am|pm)/i);
-
-  const to24 = (hhmm, ap) => {
-    let [h, mm] = hhmm.split(':').map(Number);
-    const apu = ap.toLowerCase();
-    if (apu === 'pm' && h !== 12) h += 12;
-    if (apu === 'am' && h === 12) h = 0;
-    return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
-  };
-
-  let startHHMM = original?.points?.[0]?.time || '11:05';
-  let endHHMM   = original?.points?.[original.points.length - 1]?.time || '12:26';
-  if (m) {
-    startHHMM = to24(m[1], m[2]);
-    endHHMM   = to24(m[3], m[4]);
+  // Random point inside polygon by rejection sampling within its bbox
+  function randomPointInPolygon(polyLatLngs) {
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+    polyLatLngs.forEach(p => {
+      if (p.lat < minLat) minLat = p.lat;
+      if (p.lat > maxLat) maxLat = p.lat;
+      if (p.lng < minLng) minLng = p.lng;
+      if (p.lng > maxLng) maxLng = p.lng;
+    });
+    // try up to N times (polygon is small; this is fine)
+    for (let i = 0; i < 2000; i++) {
+      const lat = minLat + Math.random() * (maxLat - minLat);
+      const lng = minLng + Math.random() * (maxLng - minLng);
+      if (pointInPolygon([lat, lng], polyLatLngs.map(p => [p.lat, p.lng]))) {
+        return { lat, lng };
+      }
+    }
+    // fallback to centroid if something odd happens
+    const c = polyLatLngs.reduce((a, p) => ({ lat: a.lat + p.lat, lng: a.lng + p.lng }), { lat: 0, lng: 0 });
+    return { lat: c.lat / polyLatLngs.length, lng: c.lng / polyLatLngs.length };
   }
 
-  const windowMins = Math.max(1, minutesBetween(startHHMM, endHHMM));
-  const startLabel = Number(original?.points?.[0]?.label || 0); // we will relabel after merge
-  const out = [];
+  // Make HH:MM minutes between a start and end time (strings 'HH:MM')
+  function minutesBetween(startHHMM, endHHMM) {
+    const [sh, sm] = startHHMM.split(':').map(Number);
+    const [eh, em] = endHHMM.split(':').map(Number);
+    return (eh * 60 + em) - (sh * 60 + sm);
+  }
+  function addMinutes(hhmm, m) {
+    const [h, mm] = hhmm.split(':').map(Number);
+    const t = h * 60 + mm + m;
+    const H = Math.floor((t % 1440) / 60);
+    const M = t % 60;
+    return `${String(H).padStart(2,'0')}:${String(M).padStart(2,'0')}`;
+  }
 
-  // pick a sensible anchor inside the LOI window if possible, else centroid
-  const toMin = (s) => {
-    const [H, M] = String(s || '00:00').split(':').map(Number);
-    return H * 60 + M;
-  };
-  const sMin = toMin(startHHMM), eMin = toMin(endHHMM);
-  const anchor = (original.points || []).find(p => {
-    const t = toMin(p.time);
-    return t >= sMin && t <= eMin;
-  }) || polygonCentroid(areaPoly);
+  // --- helpers for random-walk densify ---
+  function metersToDegrees(lat, meters) {
+    const dLat = meters / 111320; // ~111.32km per degree latitude
+    const dLng = meters / (111320 * Math.cos(lat * Math.PI / 180) || 1);
+    return { dLat, dLng };
+  }
 
-  let cur = { lat: anchor.lat, lng: anchor.lng };
+  function polygonCentroid(poly) {
+    // basic polygon centroid (lat/lng objects)
+    let x = 0, y = 0, f, area = 0;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      f = (poly[i].lng * poly[j].lat) - (poly[j].lng * poly[i].lat);
+      x += (poly[i].lng + poly[j].lng) * f;
+      y += (poly[i].lat + poly[j].lat) * f;
+      area += f;
+    }
+    area *= 0.5;
+    if (!area) return { lat: poly[0].lat, lng: poly[0].lng };
+    return { lat: y / (6 * area), lng: x / (6 * area) };
+  }
 
-  for (let i = 0; i < extra; i++) {
-    // 8–35 m step, random bearing; keep steps modest so it "meanders"
-    const stepMeters = 8 + Math.random() * 27;
-    const bearing = Math.random() * 2 * Math.PI;
-    const { dLat, dLng } = metersToDegrees(cur.lat, stepMeters);
+  // Densify a trace: generate N extra points inside polygon, with label/accuracy/time,
+  // and return the LOI time window so the caller can splice into the right place.
+  function densifyTrace(original, areaPoly, opts) {
+    const extra = opts?.count || 0;
+    if (!extra || !Array.isArray(areaPoly) || !areaPoly.length) {
+      return { points: [], startHHMM: null, endHHMM: null };
+    }
 
-    // candidate step
-    let next = {
-      lat: cur.lat + Math.sin(bearing) * dLat,
-      lng: cur.lng + Math.cos(bearing) * dLng
+    // Read LOI window from areas[0].timeanddate (e.g. "... 11:05am to 12:26pm")
+    // Fallback to first/last original point times.
+    const timeStr = original?.areas?.[0]?.timeanddate || '';
+    const m = timeStr.match(/(\d{1,2}:\d{2})\s*(am|pm)\s*to\s*(\d{1,2}:\d{2})\s*(am|pm)/i);
+
+    const to24 = (hhmm, ap) => {
+      let [h, mm] = hhmm.split(':').map(Number);
+      const apu = ap.toLowerCase();
+      if (apu === 'pm' && h !== 12) h += 12;
+      if (apu === 'am' && h === 12) h = 0;
+      return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
     };
 
-    // keep it inside the polygon: re-roll a few times, then snap to centroid
-    let attempts = 0;
-    while (
-      !pointInPolygon([next.lat, next.lng], areaPoly.map(p => [p.lat, p.lng])) &&
-      attempts < 4
-    ) {
-      const b2 = Math.random() * 2 * Math.PI;
-      const m2 = 6 + Math.random() * 16;
-      const d2 = metersToDegrees(cur.lat, m2);
-      next = {
-        lat: cur.lat + Math.sin(b2) * d2.dLat,
-        lng: cur.lng + Math.cos(b2) * d2.dLng
+    let startHHMM = original?.points?.[0]?.time || '11:05';
+    let endHHMM   = original?.points?.[original.points.length - 1]?.time || '12:26';
+    if (m) {
+      startHHMM = to24(m[1], m[2]);
+      endHHMM   = to24(m[3], m[4]);
+    }
+
+    const windowMins = Math.max(1, minutesBetween(startHHMM, endHHMM));
+    const startLabel = Number(original?.points?.[0]?.label || 0); // we will relabel after merge
+    const out = [];
+
+    // pick a sensible anchor inside the LOI window if possible, else centroid
+    const toMin = (s) => {
+      const [H, M] = String(s || '00:00').split(':').map(Number);
+      return H * 60 + M;
+    };
+    const sMin = toMin(startHHMM), eMin = toMin(endHHMM);
+    const anchor = (original.points || []).find(p => {
+      const t = toMin(p.time);
+      return t >= sMin && t <= eMin;
+    }) || polygonCentroid(areaPoly);
+
+    let cur = { lat: anchor.lat, lng: anchor.lng };
+
+    for (let i = 0; i < extra; i++) {
+      // 8–35 m step, random bearing; keep steps modest so it "meanders"
+      const stepMeters = 8 + Math.random() * 27;
+      const bearing = Math.random() * 2 * Math.PI;
+      const { dLat, dLng } = metersToDegrees(cur.lat, stepMeters);
+
+      // candidate step
+      let next = {
+        lat: cur.lat + Math.sin(bearing) * dLat,
+        lng: cur.lng + Math.cos(bearing) * dLng
       };
-      attempts++;
-    }
-    if (!pointInPolygon([next.lat, next.lng], areaPoly.map(p => [p.lat, p.lng]))) {
-      next = polygonCentroid(areaPoly);
+
+      // keep it inside the polygon: re-roll a few times, then snap to centroid
+      let attempts = 0;
+      while (
+        !pointInPolygon([next.lat, next.lng], areaPoly.map(p => [p.lat, p.lng])) &&
+        attempts < 4
+      ) {
+        const b2 = Math.random() * 2 * Math.PI;
+        const m2 = 6 + Math.random() * 16;
+        const d2 = metersToDegrees(cur.lat, m2);
+        next = {
+          lat: cur.lat + Math.sin(b2) * d2.dLat,
+          lng: cur.lng + Math.cos(b2) * d2.dLng
+        };
+        attempts++;
+      }
+      if (!pointInPolygon([next.lat, next.lng], areaPoly.map(p => [p.lat, p.lng]))) {
+        next = polygonCentroid(areaPoly);
+      }
+
+      const accuracy = Math.floor(8 + Math.random() * 33);
+      const t = addMinutes(startHHMM, Math.floor((i % windowMins)));
+
+      out.push({
+        lat: +next.lat.toFixed(6),
+        lng: +next.lng.toFixed(6),
+        label: String(startLabel + i + 1), // temp label; we relabel after splice
+        accuracy,
+        time: t,
+        isDensified: true
+      });
+
+      cur = next;
     }
 
-    const accuracy = Math.floor(8 + Math.random() * 33);
-    const t = addMinutes(startHHMM, Math.floor((i % windowMins)));
+    return { points: out, startHHMM, endHHMM };
+  }
 
-    out.push({
-      lat: +next.lat.toFixed(6),
-      lng: +next.lng.toFixed(6),
-      label: String(startLabel + i + 1), // temp label; we relabel after splice
-      accuracy,
-      time: t,
-      isDensified: true
+  function hhmmToMinutes(hhmm) {
+    const [h, m] = hhmm.split(':').map(Number);
+    return (h * 60) + m;
+  }
+
+  function spliceDensifiedIntoWindow(points, densified, startHHMM, endHHMM) {
+    if (!densified?.length) return points;
+
+    const startMin = hhmmToMinutes(startHHMM);
+    const endMin   = hhmmToMinutes(endHHMM);
+
+    // Find the first point whose time falls INSIDE the LOI window.
+    const firstInsideIdx = points.findIndex(p => {
+      const t = hhmmToMinutes(p.time);
+      return t >= startMin && t <= endMin;
     });
 
-    cur = next;
+    // Fallback: if none detected, insert near the start (but this should not happen)
+    const insertAt = (firstInsideIdx === -1) ? 0 : firstInsideIdx + 1;
+
+    const merged = points.slice();
+    merged.splice(insertAt, 0, ...densified);
+
+    // Renumber labels 1..N (keeps everything tidy for tooltips/overlays)
+    for (let i = 0; i < merged.length; i++) {
+      merged[i] = { ...merged[i], label: String(i + 1) };
+    }
+    return merged;
   }
-
-
-  return { points: out, startHHMM, endHHMM };
-}
-
-function hhmmToMinutes(hhmm) {
-  const [h, m] = hhmm.split(':').map(Number);
-  return (h * 60) + m;
-}
-
-function spliceDensifiedIntoWindow(points, densified, startHHMM, endHHMM) {
-  if (!densified?.length) return points;
-
-  const startMin = hhmmToMinutes(startHHMM);
-  const endMin   = hhmmToMinutes(endHHMM);
-
-  // Find the first point whose time falls INSIDE the LOI window.
-  const firstInsideIdx = points.findIndex(p => {
-    const t = hhmmToMinutes(p.time);
-    return t >= startMin && t <= endMin;
-  });
-
-  // Fallback: if none detected, insert near the start (but this should not happen)
-  const insertAt = (firstInsideIdx === -1) ? 0 : firstInsideIdx + 1;
-
-  const merged = points.slice();
-  merged.splice(insertAt, 0, ...densified);
-
-  // Renumber labels 1..N (keeps everything tidy for tooltips/overlays)
-  for (let i = 0; i < merged.length; i++) {
-    merged[i] = { ...merged[i], label: String(i + 1) };
-  }
-  return merged;
-}
-
-
-
 
   // Build arrowed polyline; BOTH line and arrows go into "directionInfo"
   function addPolylineWithArrows(map, latlngs, groups) {
@@ -440,113 +394,110 @@ function spliceDensifiedIntoWindow(points, densified, startHHMM, endHHMM) {
     return area.timeanddate || '';
   }
 
-function areaPopupHTML(area, overrideDateText) {
-  // 1) Remove anchors entirely, then all tags, then specific junk like "Send to NDelius"
-  const cleanText = (s) => {
-    let str = String(s || "");
-    // remove <a ...>...</a> completely
-    str = str.replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, "");
-    // remove any remaining tags
-    str = str.replace(/<\/?[^>]+>/g, "");
-    // remove literal "Send to NDelius" if it snuck in via textContent
-    str = str.replace(/\bSend\s+to\s+NDelius\b/gi, "");
-    // tidy double spaces/stray commas
-    str = str.replace(/\s{2,}/g, " ").replace(/\s*,\s*,/g, ",").replace(/\s+,/g, ",").trim();
-    return str;
-  };
+  function areaPopupHTML(area, overrideDateText) {
+    // 1) Remove anchors entirely, then all tags, then specific junk like "Send to NDelius"
+    const cleanText = (s) => {
+      let str = String(s || "");
+      // remove <a ...>...</a> completely
+      str = str.replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, "");
+      // remove any remaining tags
+      str = str.replace(/<\/?[^>]+>/g, "");
+      // remove literal "Send to NDelius" if it snuck in via textContent
+      str = str.replace(/\bSend\s+to\s+NDelius\b/gi, "");
+      // tidy double spaces/stray commas
+      str = str.replace(/\s{2,}/g, " ").replace(/\s*,\s*,/g, ",").replace(/\s+,/g, ",").trim();
+      return str;
+    };
 
-  const escapeHTML = (s) => String(s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    const escapeHTML = (s) => String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
 
-  // Plain, safe values only
-  const labelText = escapeHTML(cleanText(area.label || "Area"));
-  const typeText  = escapeHTML(cleanText(area.type || ""));
+    // Plain, safe values only
+    const labelText = escapeHTML(cleanText(area.label || "Area"));
+    const typeText  = escapeHTML(cleanText(area.type || ""));
 
-  // buildAreaWhen may include the link text if it read from the table cell; clean it hard.
-  const whenRaw  = buildAreaWhen(area, overrideDateText);
-  const whenText = escapeHTML(cleanText(whenRaw));
+    // buildAreaWhen may include the link text if it read from the table cell; clean it hard.
+    const whenRaw  = buildAreaWhen(area, overrideDateText);
+    const whenText = escapeHTML(cleanText(whenRaw));
 
-  const typeChip = typeText ? `<span class="app-area-chip">${typeText}</span>` : "";
+    const typeChip = typeText ? `<span class="app-area-chip">${typeText}</span>` : "";
 
-  // Optional building functions panel
-  const hasFunctions = Array.isArray(area.buildingFunctions) && area.buildingFunctions.length > 0;
-  const headingText  = escapeHTML(cleanText(area.notesHeading || "Mixed-use building:"));
+    // Optional building functions panel
+    const hasFunctions = Array.isArray(area.buildingFunctions) && area.buildingFunctions.length > 0;
+    const headingText  = escapeHTML(cleanText(area.notesHeading || "Mixed-use building:"));
 
-  const notes = hasFunctions ? `
-    <div class="app-popup-panel" role="group" aria-labelledby="bf-title">
-      <div class="app-popup-panel__icon" aria-hidden="true">
-        <img src="/public/images/icons/multi-use.svg" width="48" height="48" alt="">
+    const notes = hasFunctions ? `
+      <div class="app-popup-panel" role="group" aria-labelledby="bf-title">
+        <div class="app-popup-panel__icon" aria-hidden="true">
+          <img src="/public/images/icons/multi-use.svg" width="48" height="48" alt="">
+        </div>
+        <div class="app-popup-panel__content">
+          <p id="bf-title" class="govuk-body-s govuk-!-margin-bottom-1 govuk-!-margin-top-0">
+            ${headingText}
+          </p>
+          <ul class="app-popup-functions govuk-list govuk-list--bullet">
+            ${area.buildingFunctions.map(item => `<li>${escapeHTML(cleanText(item))}</li>`).join("")}
+          </ul>
+        </div>
       </div>
-      <div class="app-popup-panel__content">
-        <p id="bf-title" class="govuk-body-s govuk-!-margin-bottom-1 govuk-!-margin-top-0">
-          ${headingText}
-        </p>
-        <ul class="app-popup-functions govuk-list govuk-list--bullet">
-          ${area.buildingFunctions.map(item => `<li>${escapeHTML(cleanText(item))}</li>`).join("")}
-        </ul>
+    ` : "";
+
+    const when = whenText
+      ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>`
+      : "";
+
+    return `
+      <div class="app-area-card">
+        <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${labelText}</h4>
+        ${typeChip}
+        ${when}
+        ${notes}
       </div>
-    </div>
-  ` : "";
-
-  const when = whenText
-    ? `<p class="app-area-when govuk-!-margin-bottom-0 govuk-!-margin-top-0">${whenText}</p>`
-    : "";
-
-  return `
-    <div class="app-area-card">
-      <h4 class="govuk-heading-s govuk-!-margin-bottom-1">${labelText}</h4>
-      ${typeChip}
-      ${when}
-      ${notes}
-    </div>
-  `;
-}
-
-
+    `;
+  }
 
   function accumulateBounds(bounds, latlngs) {
     latlngs.forEach(ll => bounds.extend(ll));
   }
 
   // ---------- plot by key (existing behaviour) ----------
-async function plotTrace(traceKey, opts = {}) {
-  const {
-    scrollToMap = true,
-    highlightRowEl = null,
-    dataUrl = CFG.DEFAULT_LOI_URL
-  } = opts;
+  async function plotTrace(traceKey, opts = {}) {
+    const {
+      scrollToMap = true,
+      highlightRowEl = null,
+      dataUrl = CFG.DEFAULT_LOI_URL
+    } = opts;
 
-  const map = window.map;
-  if (!map || typeof map.addLayer !== 'function') {
-    console.warn('[gps-map] window.map not ready yet.');
-    return;
-  }
-
-  const data = await loadGpsData(dataUrl);
-
-  const trace = data && data[traceKey];
-  if (!trace) {
-    console.error(`[gps-map] Trace not found for key: ${traceKey} (in ${dataUrl})`);
-    return;
-  }
-
-  // If this was triggered from a table row, compute an override date from the first cell
-  let overrideDateText = '';
-  if (highlightRowEl) {
-    const dateCell = highlightRowEl.querySelector('td');
-    if (dateCell) {
-      overrideDateText = htmlToPlain(dateCell.innerHTML).trim();
+    const map = window.map;
+    if (!map || typeof map.addLayer !== 'function') {
+      console.warn('[gps-map] window.map not ready yet.');
+      return;
     }
+
+    const data = await loadGpsData(dataUrl);
+
+    const trace = data && data[traceKey];
+    if (!trace) {
+      console.error(`[gps-map] Trace not found for key: ${traceKey} (in ${dataUrl})`);
+      return;
+    }
+
+    // If this was triggered from a table row, compute an override date from the first cell
+    let overrideDateText = '';
+    if (highlightRowEl) {
+      const dateCell = highlightRowEl.querySelector('td');
+      if (dateCell) {
+        overrideDateText = htmlToPlain(dateCell.innerHTML).trim();
+      }
+    }
+
+    // Delegate to object plotter
+    return window.plotTraceObject(trace, { scrollToMap, highlightRowEl, overrideDateText });
   }
-
-  // Delegate to object plotter
-  return window.plotTraceObject(trace, { scrollToMap, highlightRowEl, overrideDateText });
-}
-
 
   // ⚠️ Export plotTrace for other scripts (e.g. bh-update-map.js)
   window.plotTrace = plotTrace;
@@ -576,32 +527,31 @@ async function plotTrace(traceKey, opts = {}) {
       const ll = [pt.lat, pt.lng];
       latlngs.push(ll);
 
-if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
-  // Add the large confidence circle (existing behaviour)
-  L.circle(ll, {
-    radius: pt.accuracy,
-    color: '#1d70b8',
-    weight: 1,
-    fillOpacity: 0.1
-  }).addTo(groups.accuracy);
+      if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
+        // Add the large confidence circle (existing behaviour)
+        L.circle(ll, {
+          radius: pt.accuracy,
+          color: '#1d70b8',
+          weight: 1,
+          fillOpacity: 0.1
+        }).addTo(groups.accuracy);
 
-  // Add the small centre dot (new behaviour)
-  if (window.addConfidenceCircle) {
-    // uses the helper defined in map-overlays.js
-    window.addConfidenceCircle(pt.lat, pt.lng, pt.accuracy);
-  } else {
-    // fallback if helper not loaded
-    L.circleMarker(ll, {
-      radius: 2.5,
-      color: '#1d70b8',
-      weight: 0,
-      fillColor: '#1d70b8',
-      fillOpacity: 1,
-      interactive: false
-    }).addTo(groups.accuracy);
-  }
-}
-
+        // Add the small centre dot (new behaviour)
+        if (window.addConfidenceCircle) {
+          // uses the helper defined in map-overlays.js
+          window.addConfidenceCircle(pt.lat, pt.lng, pt.accuracy);
+        } else {
+          // fallback if helper not loaded
+          L.circleMarker(ll, {
+            radius: 2.5,
+            color: '#1d70b8',
+            weight: 0,
+            fillColor: '#1d70b8',
+            fillOpacity: 1,
+            interactive: false
+          }).addTo(groups.accuracy);
+        }
+      }
 
       const marker = L.marker(ll, { title: `Point ${idx + 1}` })
         .bindTooltip(String(pt.label || idx + 1), {
@@ -693,97 +643,44 @@ if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
       });
     });
 
+    // 2) Preload scenarios JSON, then simulate a click on "Update map"
+    whenMapReady(async () => {
+      try {
+        const scenariosUrl = CFG.SCENARIOS_URL;
+        const lib = await loadGpsData(scenariosUrl);
+        window.GPS_TRACES = lib; // expose for other modules
 
-// 2) Default “latest 5 minutes” mini-trace on first load
-whenMapReady(async () => {
-  try {
-    const scenariosUrl = CFG.SCENARIOS_URL;
-    const lib = await loadGpsData(scenariosUrl);
-    window.GPS_TRACES = lib; // expose for other modules
+        // Get all bh_YYYYMMDD keys sorted by date
+        const keys = Object.keys(lib).filter(k => /^bh_\d{8}$/.test(k))
+          .sort((a, b) => {
+            const da = new Date(`${a.slice(3, 7)}-${a.slice(7, 9)}-${a.slice(9, 11)}T00:00:00Z`);
+            const db = new Date(`${b.slice(3, 7)}-${b.slice(7, 9)}-${b.slice(9, 11)}T00:00:00Z`);
+            return da - db;
+          });
 
-    // Get all bh_YYYYMMDD keys sorted by date
-    const keys = Object.keys(lib).filter(k => /^bh_\d{8}$/.test(k))
-                                 .sort((a, b) => {
-                                   const da = new Date(`${a.slice(3,7)}-${a.slice(7,9)}-${a.slice(9,11)}T00:00:00Z`);
-                                   const db = new Date(`${b.slice(3,7)}-${b.slice(7,9)}-${b.slice(9,11)}T00:00:00Z`);
-                                   return da - db;
-                                 });
+        if (keys.length) {
+          const latestKey = keys.at(-1);
+          window.CFG.DEFAULT_SCENARIO_KEY = latestKey;
+        }
+      } catch (e) {
+        console.warn('[gps-map] scenario preload failed:', e);
+      }
 
-    if (!keys.length) {
-      console.warn('[gps-map] No scenario keys found; plotting fallback.');
-      return plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
-        scrollToMap: false,
-        highlightRowEl: null,
-        dataUrl: scenariosUrl
-      });
-    }
-
-    const latestKey = keys.at(-1);
-    window.CFG.DEFAULT_SCENARIO_KEY = latestKey;
-
-    // Build a mini-trace: only points from the last N minutes of the latest day
-    const MINUTES = 60; // ← change to 4/5 as you like
-    const trace = lib[latestKey] || { points: [] };
-    const pts = Array.isArray(trace.points) ? trace.points.slice() : [];
-
-    // Find max timestamp, then keep points within [max - MINUTES, max]
-    const toDate = (p) => new Date(p.time);
-    const maxDate = pts.reduce((acc, p) => {
-      const d = toDate(p);
-      return isNaN(d) ? acc : (d > acc ? d : acc);
-    }, new Date(0));
-
-    const windowStart = new Date(maxDate.getTime() - MINUTES * 60 * 1000);
-    const mini = pts.filter(p => {
-      const d = toDate(p);
-      return !isNaN(d) && d >= windowStart && d <= maxDate;
+      // After data is loaded and other scripts have had a chance to bind
+      // their handlers, trigger the same path as a user clicking "Update map".
+      setTimeout(() => {
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const updateBtn = buttons.find(b =>
+          b.textContent && b.textContent.trim() === 'Update map'
+        );
+        if (updateBtn) {
+          console.log('[gps-map] Auto-triggering initial "Update map" search');
+          updateBtn.click();
+        } else {
+          console.warn('[gps-map] Could not find "Update map" button for auto-search.');
+        }
+      }, 0);
     });
-
-    // If we somehow get fewer than 2 points, fall back to last 10 points
-    const pointsToPlot = (mini.length >= 2) ? mini
-                         : pts.slice(Math.max(0, pts.length - 10));
-
-    // Renumber labels 1..N and keep accuracy/time as-is
-    const miniTrace = {
-      meta: {
-        description: `Latest ${MINUTES} minutes from ${latestKey}`,
-        point_count: pointsToPlot.length
-      },
-      points: pointsToPlot.map((p, i) => ({
-        lat: p.lat, lng: p.lng,
-        label: String(i + 1),
-        accuracy: p.accuracy,
-        time: p.time
-      })),
-      areas: [] // none for the mini trace
-    };
-
-    // Plot just this compact trace
-    if (miniTrace.points.length >= 2) {
-      return window.plotTraceObject(miniTrace, {
-        scrollToMap: false,
-        highlightRowEl: null,
-        overrideDateText: '' // let popup use times only
-      });
-    }
-
-    // Fallback to single default if mini couldn't be built
-    plotTrace(latestKey, {
-      scrollToMap: false,
-      highlightRowEl: null,
-      dataUrl: scenariosUrl
-    });
-  } catch (e) {
-    console.warn('[gps-map] scenario preload failed; plotting single default:', e);
-    plotTrace(CFG.DEFAULT_SCENARIO_KEY, {
-      scrollToMap: false,
-      highlightRowEl: null,
-      dataUrl: CFG.SCENARIOS_URL
-    });
-  }
-});
-
-
   });
 
   // ---------- dev helper: click map to log coords ----------
@@ -795,5 +692,5 @@ whenMapReady(async () => {
       });
     }
   });
-  
+
 })();

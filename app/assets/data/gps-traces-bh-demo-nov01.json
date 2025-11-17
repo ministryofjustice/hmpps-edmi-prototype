@@ -7261,13 +7261,14 @@
         "accuracy": 2,
         "label": 243
       },
-      {
-        "lat": 52.482446529305854,
-        "lng": -1.8922884627686214,
+            {
+        "lat": 52.481932,
+        "lng": -1.892107,
         "time": "2025-11-04T21:34",
         "accuracy": 3,
         "label": 244
       },
+
       {
         "lat": 52.48268792331087,
         "lng": -1.8937901385424951,
@@ -7275,16 +7276,16 @@
         "accuracy": 4,
         "label": 245
       },
-      {
-        "lat": 52.48165768274229,
-        "lng": -1.892227521097562,
+            {
+        "lat": 52.481806,
+        "lng": -1.89215,
         "time": "2025-11-04T21:47",
         "accuracy": 3,
         "label": 246
       },
       {
-        "lat": 52.48170578721546,
-        "lng": -1.8921011870436113,
+        "lat": 52.481825,
+        "lng": -1.892099,
         "time": "2025-11-04T21:55",
         "accuracy": 2,
         "label": 247
@@ -7444,7 +7445,28 @@
         "label": 269
       }
     ],
-    "areas": []
+    "areas": [
+    {
+      "label": "The Premier Inn Birmingham, 6, Exchange Square, The Priory Queensway, Birmingham B4 6FY",
+        "type": "Pubs, bars and clubs",
+        "timeanddate": "Tuesday 4 November 2025, 21:19pm to 21:59pm",
+        "coordinates": [
+          { "lat": 52.481879, "lng": -1.892438 },
+          { "lat": 52.481980, "lng": -1.892178 },
+          { "lat": 52.481936, "lng": -1.892073 },
+          { "lat": 52.482115, "lng": -1.891781 },
+          { "lat": 52.482006, "lng": -1.891553 },
+          { "lat": 52.481689, "lng": -1.891998 },
+          { "lat": 52.481756, "lng": -1.892312 },
+          { "lat": 52.481879, "lng": -1.892449 }
+        ],
+        "buildingFunctions": [
+          "Bar / restaurant",
+          "Outdoor seating area"
+        ]
+    }
+  ]
+
   },
   "bh_20251105": {
     "points": [

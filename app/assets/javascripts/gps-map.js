@@ -502,6 +502,22 @@
   // ⚠️ Export plotTrace for other scripts (e.g. bh-update-map.js)
   window.plotTrace = plotTrace;
 
+    // Return true if any point in `points` falls inside the polygon defined by `area.coordinates`
+  function areaHasAnyPoint(area, points) {
+    if (!Array.isArray(points) || !Array.isArray(area?.coordinates)) return false;
+
+    const polyLatLngs = area.coordinates.map(c => ({ lat: c.lat, lng: c.lng }));
+    if (polyLatLngs.length < 3) return false;
+
+    const vs = polyLatLngs.map(p => [p.lat, p.lng]); // for pointInPolygon
+
+    return points.some(p => {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return false;
+      return pointInPolygon([p.lat, p.lng], vs);
+    });
+  }
+
+
   // ---------- plot a provided trace object (for filtered scenarios) ----------
   window.plotTraceObject = async function (traceObj, opts = {}) {
     const {
@@ -575,8 +591,12 @@
       addPolylineWithArrows(map, latlngs, groups);
     }
 
-    // ---- polygons / areas + always-visible info card ----
-    (traceObj.areas || []).forEach(area => {
+        // ---- polygons / areas + always-visible info card ----
+    const allAreas  = Array.isArray(traceObj.areas) ? traceObj.areas : [];
+    const hitAreas  = allAreas.filter(area => areaHasAnyPoint(area, traceObj.points || []));
+    let firstPoly   = null;
+
+    hitAreas.forEach(area => {
       const pts = (area.coordinates || []).map(c => [c.lat, c.lng]);
       if (pts.length >= 3) {
         const poly = L.polygon(pts, {
@@ -595,10 +615,21 @@
           closeOnClick: false,
           className: 'app-area-popup'
         });
-        poly.openPopup();
+
+        // Remember the first polygon we add, so we can open its popup by default
+        if (!firstPoly) {
+          firstPoly = poly;
+        }
+
         poly.on('click', () => poly.openPopup());
       }
     });
+
+    // Open only the first hit LOI popup (if any)
+    if (firstPoly) {
+      firstPoly.openPopup();
+    }
+
 
     if (allBounds.isValid()) {
       groups.areas.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });

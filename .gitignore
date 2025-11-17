@@ -11,3 +11,6 @@ usage-data-config.json
 .DS_Store
 .idea
 EDMI_GPS_LOI.code-workspace
+app/assets/data/gps-traces-bh-demo-nov01-REVERTTOTHISONE.json
+app/assets/data/gps-traces-bh-demo-nov01-OLDEST.json
+app/assets/data/gps-traces-bh-demo-nov01-OLD.json

@@ -592,9 +592,17 @@
     }
 
         // ---- polygons / areas + always-visible info card ----
-    const allAreas  = Array.isArray(traceObj.areas) ? traceObj.areas : [];
-    const hitAreas  = allAreas.filter(area => areaHasAnyPoint(area, traceObj.points || []));
-    let firstPoly   = null;
+    const allAreas = Array.isArray(traceObj.areas) ? traceObj.areas : [];
+
+    // First, try to find areas that actually contain at least one point
+    let hitAreas = allAreas.filter(area => areaHasAnyPoint(area, traceObj.points || []));
+
+    // Fallback: if none are "hit", show all areas (for legacy scenarios / LOI table)
+    if (!hitAreas.length) {
+      hitAreas = allAreas;
+    }
+
+    let firstPoly = null;
 
     hitAreas.forEach(area => {
       const pts = (area.coordinates || []).map(c => [c.lat, c.lng]);
@@ -604,7 +612,7 @@
           fillColor: '#DB90B7',
           fillOpacity: 0.3,
           weight: 5,
-          pane: 'loi-areas'   // <- draw in our high-z pane
+          pane: 'loi-areas'   // draw in our high-z pane
         }).addTo(groups.areas);
 
         accumulateBounds(allBounds, pts);
@@ -616,7 +624,6 @@
           className: 'app-area-popup'
         });
 
-        // Remember the first polygon we add, so we can open its popup by default
         if (!firstPoly) {
           firstPoly = poly;
         }
@@ -625,10 +632,10 @@
       }
     });
 
-    // Open only the first hit LOI popup (if any)
     if (firstPoly) {
       firstPoly.openPopup();
     }
+
 
 
     if (allBounds.isValid()) {

@@ -380,6 +380,10 @@
             <dt class="govuk-summary-list__key">Lat / Lng</dt>
             <dd class="govuk-summary-list__value"><code>${lat}, ${lng}</code></dd>
           </div>
+          <div class="govuk-summary-list__row">
+            <dt class="govuk-summary-list__key">Location</dt>
+            <dd class="govuk-summary-list__value"><a href="#">Save this location</a></dd>
+          </div>
         </dl>
       </div>
     `;
@@ -537,39 +541,78 @@
 
     const allBounds = L.latLngBounds([]);
 
-    // ---- points, accuracy circles, numbered markers (+ POPUPS) ----
     const latlngs = [];
+
     (traceObj.points || []).forEach((pt, idx) => {
       const ll = [pt.lat, pt.lng];
       latlngs.push(ll);
 
+      // --- accuracy circles + dot ---
       if (Number.isFinite(pt.accuracy) && pt.accuracy > 0) {
-        // Add the large confidence circle (existing behaviour)
-        L.circle(ll, {
+        const popupOptions = {
+          closeButton: true,
+          autoClose: true,
+          closeOnClick: true,
+          className: 'gps-point-popup',
+          autoPan: false
+        };
+
+        // Large translucent circle
+        const accCircle = L.circle(ll, {
           radius: pt.accuracy,
           color: '#1d70b8',
           weight: 1,
           fillOpacity: 0.1
         }).addTo(groups.accuracy);
 
-        // Add the small centre dot (new behaviour)
+        accCircle.bindPopup(pointPopupHTML(pt, idx), popupOptions);
+        accCircle.on('click', function (e) {
+          if (e && e.originalEvent) {
+            e.originalEvent.preventDefault();
+            e.originalEvent.stopPropagation();
+          }
+          this.openPopup();
+        });
+
+        // Dot in the centre
         if (window.addConfidenceCircle) {
-          // uses the helper defined in map-overlays.js
           window.addConfidenceCircle(pt.lat, pt.lng, pt.accuracy);
         } else {
-          // fallback if helper not loaded
-          L.circleMarker(ll, {
+          const dot = L.circleMarker(ll, {
             radius: 2.5,
             color: '#1d70b8',
             weight: 0,
             fillColor: '#1d70b8',
             fillOpacity: 1,
-            interactive: false
+            interactive: true
           }).addTo(groups.accuracy);
+
+          dot.bindPopup(pointPopupHTML(pt, idx), popupOptions);
+          dot.on('click', function (e) {
+            if (e && e.originalEvent) {
+              e.originalEvent.preventDefault();
+              e.originalEvent.stopPropagation();
+            }
+            this.openPopup();
+          });
         }
       }
 
-      const marker = L.marker(ll, { title: `Point ${idx + 1}` })
+      // --- hidden marker with tooltip + popup ---
+      const markerPopupOptions = {
+        closeButton: true,
+        autoClose: true,
+        closeOnClick: true,
+        className: 'gps-point-popup',
+        autoPan: false
+      };
+
+      const marker = L.marker(ll, {
+        title: `Point ${idx + 1}`,
+        interactive: true,
+        riseOnHover: true,
+        zIndexOffset: 1000
+      })
         .bindTooltip(String(pt.label || idx + 1), {
           permanent: true,
           direction: 'center',
@@ -577,14 +620,21 @@
         })
         .addTo(groups.numbers);
 
-      marker.bindPopup(pointPopupHTML(pt, idx), {
-        closeButton: true,
-        autoClose: true,
-        closeOnClick: true,
-        className: 'gps-point-popup'
+      marker.bindPopup(pointPopupHTML(pt, idx), markerPopupOptions);
+
+      marker.on('click', function (e) {
+        if (e && e.originalEvent) {
+          e.originalEvent.preventDefault();
+          e.originalEvent.stopPropagation();
+        }
+        this.openPopup();
       });
-    });
-    if (latlngs.length) accumulateBounds(allBounds, latlngs);
+    }); // <-- THIS WAS MISSING
+
+    if (latlngs.length) {
+      accumulateBounds(allBounds, latlngs);
+    }
+
 
     // ---- polyline with arrows (Direction info) ----
     if (latlngs.length >= 2) {

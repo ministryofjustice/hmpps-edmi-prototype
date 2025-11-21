@@ -21,7 +21,7 @@
   const CFG = Object.assign({
     DEFAULT_LOI_URL: '/public/data/gps-traces-bh.json',
     SCENARIOS_URL:   '/public/data/gps-traces-bh-demo-nov01.json',
-    DEFAULT_SCENARIO_KEY: 'bh_20251101'   // safe fallback string
+    DEFAULT_SCENARIO_KEY: 'bh_20251113'   // safe fallback string
   }, (window.GPS_CONFIG || {}));
 
   // DEBUG: surface the config we actually ended up with

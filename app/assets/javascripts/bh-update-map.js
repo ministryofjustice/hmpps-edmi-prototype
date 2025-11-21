@@ -377,7 +377,7 @@ const ptsTo = dayTo
     if (form) form.reset();
 
     // After clear, default back to the “latest 5 mins” mini-trace on scenarios
-    const defaultKey = (window.CFG?.DEFAULT_SCENARIO_KEY) || 'bh_20251101';
+    const defaultKey = (window.CFG?.DEFAULT_SCENARIO_KEY) || 'bh_20251113';
     window.plotTrace(defaultKey, {
       scrollToMap: false,
       highlightRowEl: null,

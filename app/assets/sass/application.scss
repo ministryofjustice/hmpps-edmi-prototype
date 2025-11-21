@@ -16,6 +16,8 @@
 
 .moj-page-header-actions { margin-bottom: 10px!important;}
 
+#bh-step-forward { font-size: 19px;}
+
 // Richard's file download icon
 .app-attachment__thumbnail {
   width: 100px;
@@ -251,6 +253,8 @@ tr.is-active-row > td { background-color: #FFF8CC; }
       "clear";
   }
 }
+
+
 
 /* optional: debug – outlines each grid child 
 .bh-filters-grid > * { outline: 2px dashed rgba(0,0,0,.2); } */

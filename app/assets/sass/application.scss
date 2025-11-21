@@ -14,6 +14,70 @@
     margin: 20px 0!important;
 }
 
+.moj-page-header-actions { margin-bottom: 10px!important;}
+
+// Richard's file download icon
+.app-attachment__thumbnail {
+  width: 100px;
+  height: auto;
+  display: block;
+}
+
+.app-attachment__thumbnail svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gem-c-attachment {
+    position: relative;
+    font-family: "GDS Transport", arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-weight: 400;
+    font-size: 1.1875rem;
+    line-height: 1.31579;
+}
+
+.gem-c-attachment__thumbnail-image {
+    display: block;
+    width: auto;
+    max-width: 100px;
+    height: 100px;
+    box-shadow: rgba(11, 12, 12, 0.4) 0px 2px 2px;
+    fill: rgb(177, 180, 182);
+    stroke: rgb(177, 180, 182);
+    border-width: initial;
+    border-style: initial;
+    border-color: rgba(11, 12, 12, 0.1);
+    border-image: initial;
+    outline: rgba(11, 12, 12, 0.1) solid 5px;
+    background: rgb(255, 255, 255);
+}
+
+.app-attachment {
+  display: flex;
+  align-items: flex-start;  /* top align like the GOV version */
+  gap: 20px;                /* space between icon and text */
+  margin-bottom: 30px;
+}
+
+.app-attachment__thumbnail {
+  width: 120px;              /* matches GOV’s approximate size */
+  flex-shrink: 0;
+}
+
+.app-attachment__thumbnail svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.app-attachment__details {
+  flex: 1;
+}
+
+
+
 .curfew-forecast-break {
   margin: 30px 0;
 }

@@ -22,6 +22,130 @@ router.get('/penny-location', (req, res) => {
   res.render('penny-location', { todayMax, todayDisplay, startIndex: res.locals.startIndex });
 });
 
+// For Richard's Create report page
+// Create report – show form
+router.get('/rm-create-report', function (req, res) {
+  res.render('rm-create-report');
+});
+
+
+// Handle form submit → go to “generating” state
+router.post('/rm-create-report', function (req, res) {
+  const data = req.session.data || {};
+
+  // -------------------------------
+  // Report start date and time (from form)
+  // -------------------------------
+  const rawDate = data['rm-report-start-date'];   // e.g. "10/11/2025"
+  const hour    = data['rm-report-start-hour'];   // e.g. "10"
+  const minute  = data['rm-report-start-minute']; // e.g. "01"
+
+  const MONTHS = [
+    'January','February','March','April','May','June',
+    'July','August','September','October','November','December'
+  ];
+  const pad2 = (n) => String(n).padStart(2, '0');
+
+  let startLabel = 'Not set';
+
+  if (rawDate && hour && minute) {
+    const parts = rawDate.split('/'); // expect ["dd","mm","yyyy"]
+    if (parts.length === 3) {
+      const ddRaw = parts[0];
+      const mmRaw = parts[1];
+      const yyyy  = parts[2];
+
+      const dd      = parseInt(ddRaw, 10);
+      const mmIndex = parseInt(mmRaw, 10) - 1;
+      const monthName = MONTHS[mmIndex] || '';
+
+      const hNum = parseInt(hour, 10);
+      const mNum = parseInt(minute, 10) || 0;
+
+      const mmText = pad2(mNum);
+
+      // Convert 24h → 12h
+      const hour24  = hNum;
+      const hour12  = ((hour24 + 11) % 12) + 1;  // 1–12
+      const ampm    = hour24 >= 12 ? 'pm' : 'am';
+
+      // e.g. "10 November 2025 10:01am"
+      startLabel = `${dd} ${monthName} ${yyyy} ${hour12}:${mmText}${ampm}`;
+    }
+  }
+
+  data['rm-report-start-label'] = startLabel;
+
+  // -------------------------------
+  // Build dynamic report filename
+  // -------------------------------
+  const startRaw = data['rm-report-start-date'];        // e.g. "20/10/2025"
+  const lengthRaw = (data['rm-report-length'] || '')    // e.g. "7 days"
+    .toString()
+    .trim()
+    .replace(/\s+/g, '');                               // "7days"
+  const hoursRaw  = (data['rm-report-hours-per-map'] || '') // e.g. "6 hours"
+    .toString()
+    .trim()
+    .replace(/\s+/g, '');                               // "6hours"
+
+  let ddmmyyyy = '';
+
+  if (startRaw && startRaw.includes('/')) {
+    const parts = startRaw.split('/'); // ["dd","mm","yyyy"]
+    if (parts.length === 3) {
+      const dd = parts[0].padStart(2, '0'); // "20"
+      const mm = parts[1].padStart(2, '0'); // "10"
+      const yyyy = parts[2];                // "2025"
+      ddmmyyyy = `${dd}${mm}${yyyy}`;       // "20102025"
+    }
+  }
+
+  const filename = ddmmyyyy
+    ? `HMPPS-trail-monitoring-report-${ddmmyyyy}-${lengthRaw}-${hoursRaw}.pdf`
+    : 'HMPPS-trail-monitoring-report.pdf';
+
+  data['rm-report-filename'] = filename;
+
+  // -------------------------------
+  // Date and time REQUESTED (now)
+  // -------------------------------
+  const now = new Date();
+
+  const day     = now.getDate();
+  const month   = MONTHS[now.getMonth()];
+  const year    = now.getFullYear();
+  const minutes = pad2(now.getMinutes());
+
+  const reqHour24  = now.getHours();
+  const reqHour12  = ((reqHour24 + 11) % 12) + 1;
+  const reqAmpm    = reqHour24 >= 12 ? 'pm' : 'am';
+
+  const requestedLabel =
+    `${day} ${month} ${year} ${reqHour12}:${minutes}${reqAmpm}`;
+
+  data['rm-report-requested-label'] = requestedLabel;
+
+  // -------------------------------
+  // Save and continue
+  // -------------------------------
+  req.session.data = data;
+  res.redirect('/rm-report-generating');
+});
+
+
+
+// Generating + ready pages just render templates
+router.get('/rm-report-generating', function (req, res) {
+  res.render('rm-report-generating');
+});
+
+router.get('/rm-report-ready', function (req, res) {
+  res.render('rm-report-ready');
+});
+
+
+
 
 
 // ---- Dynamic dates for LOI table (available to all views) ----

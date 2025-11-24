@@ -359,35 +359,60 @@
   }
 
   function pointPopupHTML(pt, idx) {
-    const label = (pt.label != null) ? String(pt.label) : String(idx + 1);
-    const acc   = (typeof pt.accuracy === 'number') ? `${fmtNum(pt.accuracy, 0)}m` : '—';
-    const time  = fmtTimeHHMM(pt.time);
-    const lat   = fmtCoord(pt.lat);
-    const lng   = fmtCoord(pt.lng);
-    return `
-      <div class="gps-point-card">
-        <h4 class="govuk-heading-s govuk-!-margin-bottom-2">Point ${label}</h4>
-        <dl class="govuk-summary-list govuk-!-margin-bottom-0">
-          <div class="govuk-summary-list__row">
-            <dt class="govuk-summary-list__key">Accuracy</dt>
-            <dd class="govuk-summary-list__value">${acc}</dd>
-          </div>
-          <div class="govuk-summary-list__row">
-            <dt class="govuk-summary-list__key">Time</dt>
-            <dd class="govuk-summary-list__value">${time}</dd>
-          </div>
-          <div class="govuk-summary-list__row">
-            <dt class="govuk-summary-list__key">Lat / Lng</dt>
-            <dd class="govuk-summary-list__value"><code>${lat}, ${lng}</code></dd>
-          </div>
-          <div class="govuk-summary-list__row">
-            <dt class="govuk-summary-list__key">Location</dt>
-            <dd class="govuk-summary-list__value"><a href="#">Save this location</a></dd>
-          </div>
-        </dl>
-      </div>
-    `;
+  const label = (pt.label != null) ? String(pt.label) : String(idx + 1);
+  const acc   = (typeof pt.accuracy === 'number') ? `${fmtNum(pt.accuracy, 0)}m` : '—';
+
+  // --- NEW: date + short time formatter ---
+  function formatDateTime(raw) {
+    if (!raw) return '—';
+    const d = new Date(raw);
+    if (isNaN(d)) return '—';
+
+    const day = d.getDate();                    // 1 → 31
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun",
+                        "Jul","Aug","Sep","Oct","Nov","Dec"];
+    const mon = monthNames[d.getMonth()];
+    const yr  = String(d.getFullYear()).slice(-2);
+
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+
+    return `${day} ${mon} ${yr}, ${hh}:${mm}`;
   }
+
+  const dateTime = formatDateTime(pt.time);
+
+  const lat = fmtCoord(pt.lat);
+  const lng = fmtCoord(pt.lng);
+
+  return `
+    <div class="gps-point-card">
+      <h4 class="govuk-heading-s govuk-!-margin-bottom-2">Point ${label}</h4>
+      <dl class="govuk-summary-list govuk-!-margin-bottom-0">
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Accuracy</dt>
+          <dd class="govuk-summary-list__value">${acc}</dd>
+        </div>
+
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Date / time</dt>
+          <dd class="govuk-summary-list__value">${dateTime}</dd>
+        </div>
+
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Lat / Lng</dt>
+          <dd class="govuk-summary-list__value"><code>${lat}, ${lng}</code></dd>
+        </div>
+
+        <div class="govuk-summary-list__row">
+          <dt class="govuk-summary-list__key">Location</dt>
+          <dd class="govuk-summary-list__value"><a href="#">Save this location</a></dd>
+        </div>
+      </dl>
+    </div>
+  `;
+}
+
 
   // Build the "when" line for an Area card using an override date (from the LOI table) if provided.
   function buildAreaWhen(area, overrideDateText) {
